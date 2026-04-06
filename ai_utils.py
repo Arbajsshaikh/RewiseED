@@ -92,22 +92,25 @@ Content:
     return data
 
 
-import whisper
 import os
+from openai import OpenAI
 
-# Load model once (important)
-model = whisper.load_model("base")  # small | base | medium
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def transcribe_audio(audio_path):
     """
-    Converts audio to text using local Whisper
+    Converts audio to text using OpenAI API (NO heavy dependencies)
     """
     if not os.path.exists(audio_path):
         raise FileNotFoundError("Audio file not found")
 
-    result = model.transcribe(audio_path)
+    with open(audio_path, "rb") as f:
+        transcript = client.audio.transcriptions.create(
+            model="gpt-4o-transcribe",
+            file=f
+        )
 
-    text = result.get("text", "").strip()
+    text = transcript.text.strip()
 
     if not text:
         raise ValueError("Transcription returned empty text")
@@ -117,9 +120,8 @@ def transcribe_audio(audio_path):
 
 def summarize_text(transcript):
     """
-    SIMPLE rule-based summary (safe & predictable)
+    SAME simple rule-based summary (unchanged)
     """
-
     lines = transcript.split(".")
     summary = ". ".join(lines[:5]).strip()
 
