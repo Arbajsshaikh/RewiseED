@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ 'New' if mode=='new' else 'Edit' }} Group - Trainer{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  {% include "partials/sidebar_trainer.html" ignore missing %}
+
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">
+          {{ 'Create group' if mode=='new' else 'Edit group' }}
+        </h1>
+        <p class="welcome-subtitle">Pick students to include in this cohort.</p>
+      </div>
+    </header>
+
+    <section class="panel full">
+      <form method="post" class="form">
+        <div class="form-group">
+          <label>Group name</label>
+          <input name="name" type="text" required
+                 value="{{ group.name if group else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea name="description" rows="2"
+                    placeholder="Optional description...">{{ group.description if group else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Members</label>
+          <div class="multi-select-list">
+            {% for s in students %}
+            {% set checked = member_ids and (s.id in member_ids) %}
+            <label class="multi-select-item">
+              <input type="checkbox" name="students" value="{{ s.id }}"
+                     {% if checked %}checked{% endif %}>
+              <span>{{ s.name }} – {{ s.email }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="course-form-actions">
+          <a href="{{ url_for('trainer_groups') }}" class="btn-sm btn-ghost">Back</a>
+          <button type="submit" class="btn primary-btn">
+            {{ 'Create group' if mode=='new' else 'Save changes' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </main>
+</div>
+{% endblock %}

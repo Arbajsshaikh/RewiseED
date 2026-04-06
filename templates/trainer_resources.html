@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% block title %}Resources - Trainer - Academic{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item">
+        <span class="nav-icon">📚</span>
+        <span>Courses</span>
+      </a>
+      <a href="{{ url_for('trainer_students') }}" class="nav-item">
+        <span class="nav-icon">👨‍🎓</span>
+        <span>Students</span>
+      </a><a href="{{ url_for('trainer_insights') }}" class="nav-item{% if request.endpoint == 'trainer_insights' %} active{% endif %}">
+  <span class="nav-icon">📊</span><span>Insights</span>
+</a>
+
+      <a href="{{ url_for('trainer_assessments_overview') }}" class="nav-item">
+        <span class="nav-icon">🧪</span>
+        <span>Assessments</span>
+      </a>
+      <a href="{{ url_for('trainer_resources') }}" class="nav-item active">
+        <span class="nav-icon">📂</span>
+        <span>Resources</span>
+      </a>
+      <a href="{{ url_for('trainer_events') }}" class="nav-item">
+        <span class="nav-icon">📅</span>
+        <span>Events</span>
+      </a>
+      <a href="{{ url_for('trainer_community') }}" class="nav-item">
+        <span class="nav-icon">💬</span>
+        <span>Community</span>
+      </a>
+     <a href="{{ url_for('trainer_question_bank') }}" class="nav-item">
+  <span class="nav-icon">🧠</span><span>Question bank</span>
+</a>
+<a href="{{ url_for('trainer_groups') }}" class="nav-item">
+  <span class="nav-icon">👥</span><span>Groups</span>
+</a>
+<a href="{{ url_for('trainer_certificates') }}" class="nav-item">
+  <span class="nav-icon">🎓</span><span>Certificates</span>
+</a>
+
+<a href="{{ url_for('trainer_automations') }}" class="nav-item">
+  <span class="nav-icon">⚡</span><span>Automations</span>
+</a>
+
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('trainer_settings') }}" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span>Settings</span>
+      </a>
+      <a href="{{ url_for('trainer_help') }}" class="nav-item">
+        <span class="nav-icon">❓</span>
+        <span>Help Center</span>
+      </a>
+      <button class="dark-toggle" type="button">
+        <span>🌙</span>
+        <span>Dark Mode</span>
+      </button>
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span>
+        <span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">Resource Library</h1>
+        <p class="welcome-subtitle">
+          Central place to manage PDFs, images, slides, audio and other materials across all your courses.
+        </p>
+      </div>
+    </header>
+
+    <!-- Filter / search toolbar -->
+    <section class="courses-toolbar">
+      <form method="get" class="form-row-2" style="align-items:flex-end; gap: 10px;">
+        <div class="form-group">
+          <label for="q">Search</label>
+          <input id="q" name="q" type="text"
+                 placeholder="Search by title or filename..."
+                 value="{{ q_search }}">
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="course_id">Course</label>
+            <select id="course_id" name="course_id">
+              <option value="">All courses</option>
+              {% for c in courses %}
+              <option value="{{ c.id }}" {% if q_course|int == c.id %}selected{% endif %}>
+                {{ c.title }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="type">Type</label>
+            <select id="type" name="type">
+              <option value="">All</option>
+              <option value="pdf"   {% if q_type == 'pdf' %}selected{% endif %}>PDF</option>
+              <option value="image" {% if q_type == 'image' %}selected{% endif %}>Images</option>
+              <option value="ppt"   {% if q_type == 'ppt' %}selected{% endif %}>PPT / Slides</option>
+              <option value="audio" {% if q_type == 'audio' %}selected{% endif %}>Audio</option>
+              <option value="doc"   {% if q_type == 'doc' %}selected{% endif %}>Docs</option>
+              <option value="other" {% if q_type == 'other' %}selected{% endif %}>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <button type="submit" class="btn primary-btn" style="margin-top: 20px;">Filter</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Table of assets -->
+    <section class="courses-table-panel">
+      {% if assets %}
+      <table class="courses-table">
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Course</th>
+            <th>Type</th>
+            <th>Size</th>
+            <th>Uploaded</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for a in assets %}
+          <tr>
+            <td>
+              <form method="post"
+                    action="{{ url_for('trainer_asset_rename', asset_id=a.id) }}"
+                    class="inline-form">
+                <input type="text" name="title"
+                       value="{{ a.title or a.filename }}"
+                       class="rename-input">
+                <button type="submit" class="btn-sm btn-ghost">Rename</button>
+              </form>
+            </td>
+            <td>
+              {% if a.course_id and courses_by_id.get(a.course_id) %}
+                {{ courses_by_id[a.course_id].title }}
+              {% else %}
+                –
+              {% endif %}
+            </td>
+            <td>{{ a.type|capitalize }}</td>
+            <td>{{ '%.1f'|format(a.size_bytes / 1024 / 1024) }} MB</td>
+            <td>{{ a.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td class="actions-col">
+              <a href="{{ url_for('static', filename='uploads/resources/' ~ a.filename) }}"
+                 class="btn-sm btn-ghost" target="_blank">Open</a>
+              <form method="post"
+                    action="{{ url_for('trainer_asset_delete', asset_id=a.id) }}"
+                    class="inline-form delete-course-form">
+                <button type="submit" class="btn-sm btn-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <p>No resources found yet.</p>
+        <p>Upload PDFs, images, PPTs, or other files inside any course; they will appear here automatically.</p>
+      </div>
+      {% endif %}
+    </section>
+  </main>
+</div>
+{% endblock %}

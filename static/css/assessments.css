@@ -1,0 +1,66 @@
+.assessment-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.8fr);
+  gap: 14px;
+}
+
+.assessment-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 16px 18px;
+  box-shadow: 0 18px 40px rgba(148, 163, 184, 0.28);
+}
+
+.assessment-card h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.question-form {
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 12px;
+}
+
+.question-table td:nth-child(2) {
+  max-width: 420px;
+}
+
+/* Reuse existing button sizes etc. */
+
+.btn-sm {
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  border: 1px solid transparent;
+  background: #e5e7eb;
+  cursor: pointer;
+}
+
+.btn-ghost {
+  background: transparent;
+  border-color: #d1d5db;
+}
+
+.btn-ghost:hover {
+  background: #f3f4f6;
+}
+
+.btn-danger {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.btn-danger:hover {
+  background: #fecaca;
+}
+
+/* Responsive */
+
+@media (max-width: 1024px) {
+  .assessment-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

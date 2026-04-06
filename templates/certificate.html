@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Certificate — {{ course_title }}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    /* clean printable certificate style */
+    @page { size: A4 landscape; margin: 0; }
+    body { font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin: 0; }
+    .wrap {
+      width: 100%; height: 100vh; display:flex; align-items:center; justify-content:center;
+      background: linear-gradient(135deg,#f7fafc,#eef6fb);
+      padding: 40px;
+      box-sizing: border-box;
+    }
+    .cert {
+      width: 1000px; max-width: 96%; height: 640px; background: white;
+      border-radius: 18px; box-shadow: 0 14px 40px rgba(20,20,40,0.08);
+      padding: 44px; box-sizing:border-box; position:relative; overflow:hidden;
+    }
+    .ribbon {
+      position:absolute; right:32px; top:32px;
+      background: linear-gradient(180deg,#6366f1,#4f46e5);
+      color:white; padding:10px 14px; border-radius:10px; font-weight:600;
+      box-shadow:0 6px 18px rgba(79,70,229,0.18);
+    }
+    .logo {
+      width:68px; height:68px; border-radius:12px; background:#111827; color:white;
+      display:flex; align-items:center; justify-content:center; font-weight:700;
+      font-size:28px;
+    }
+
+    h1 { font-size:36px; margin:0 0 6px; color:#0f172a; }
+    .sub { color:#64748b; margin-bottom: 18px; }
+    .recipient {
+      margin-top:36px; font-size:28px; color:#0f172a; font-weight:700;
+    }
+    .meta {
+      margin-top:28px; display:flex; gap:24px; align-items:center;
+    }
+    .meta .item { display:flex; flex-direction:column; }
+    .meta .label { color:#64748b; font-size:13px; }
+    .meta .value { font-weight:700; font-size:16px; color:#0f172a; }
+
+    .signature {
+      position:absolute; right:44px; bottom:44px; text-align:center;
+    }
+    .sign-img { width:160px; height:60px; object-fit:contain; display:block; margin-bottom:6px; }
+    .small { color:#94a3b8; font-size:13px; }
+
+    /* print-friendly */
+    @media print {
+      .wrap { background: #fff; }
+      .cert { box-shadow:none; border-radius: 0; padding: 18mm; }
+      .ribbon { display:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="cert">
+      <div style="display:flex;align-items:center;gap:18px;">
+        <div class="logo">{{ organization_initial or 'R' }}</div>
+        <div>
+          <div class="small">{{ organization_name or 'RewiseED' }}</div>
+          <h1>Certificate of Completion</h1>
+          <div class="sub">This certificate is awarded to</div>
+        </div>
+      </div>
+
+      <div class="recipient">{{ student_name }}</div>
+
+      <div class="sub" style="margin-top:6px;">for successfully completing the course</div>
+      <h2 style="margin:8px 0 0;font-size:22px">{{ course_title }}</h2>
+
+      <div class="meta">
+        <div class="item">
+          <div class="label">Certificate ID</div>
+          <div class="value">{{ certificate_id }}</div>
+        </div>
+        <div class="item">
+          <div class="label">Date</div>
+          <div class="value">{{ date }}</div>
+        </div>
+        <div class="item">
+          <div class="label">Instructor</div>
+          <div class="value">{{ instructor_name }}</div>
+        </div>
+      </div>
+
+      <div class="signature">
+        <!-- optional signature image (if available) -->
+        {% if signature_url %}
+        <img class="sign-img" src="{{ signature_url }}" alt="signature" />
+        {% else %}
+        <div style="height:48px;"></div>
+        {% endif %}
+        <div class="small">Authorized signature</div>
+      </div>
+
+      <div class="ribbon">Verified</div>
+    </div>
+  </div>
+</body>
+</html>

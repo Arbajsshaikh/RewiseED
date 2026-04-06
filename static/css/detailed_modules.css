@@ -1,0 +1,113 @@
+/* DEBUG TEST */
+body {
+  background: #f4f7fb;
+}
+
+/* Layout */
+.dm-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr 1.3fr;
+  height: calc(100vh - 70px);
+  gap: 16px;
+  padding: 16px;
+}
+
+/* Left courses */
+.dm-courses {
+  background: #0f172a;
+  color: white;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.course-item {
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: all 0.25s ease;
+}
+
+.course-item:hover {
+  background: rgba(255,255,255,0.15);
+  transform: translateX(4px);
+}
+
+/* Input panel */
+.dm-input {
+  background: white;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+}
+
+.dm-input textarea {
+  width: 100%;
+  height: 240px;
+  margin-top: 12px;
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid #ddd;
+}
+
+.dm-input button {
+  margin-top: 14px;
+  padding: 12px 18px;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+/* Output */
+.dm-output {
+  background: #f9fafb;
+  border-radius: 16px;
+  padding: 18px;
+  overflow-y: auto;
+}
+
+/* Tiles */
+.module-tile {
+  background: white;
+  border-radius: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+  overflow: hidden;
+}
+
+.module-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.module-header:hover {
+  background: #eef2ff;
+}
+
+.module-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+  padding: 0 16px;
+}
+
+.module-tile.active .module-body {
+  max-height: 400px;
+  padding-bottom: 14px;
+}
+
+.module-body ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+.module-body li {
+  margin-bottom: 6px;
+  color: #374151;
+}

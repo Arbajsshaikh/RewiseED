@@ -1,0 +1,1 @@
+Hello everyone, welcome to age you take.  Here you can see the sign up and sign in page for both learner and educator.  Here is the demo email and password is given here.  You can sign in and sign up via google, github or LinkedIn.  Here is the top corner you can see enterprises and pricing

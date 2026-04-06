@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{% if mode=='new' %}New Template{% else %}Edit Template{% endif %}{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <div class="panel-header">
+    <h2>{% if mode=='new' %}New Template{% else %}Edit Template{% endif %}</h2>
+  </div>
+
+  <form method="post" class="template-form">
+    <div class="form-row">
+      <label>Title</label>
+      <input name="title" value="{{ tpl.title if tpl else '' }}" required/>
+    </div>
+    <div class="form-row">
+      <label>Description</label>
+      <textarea name="description">{{ tpl.description if tpl else '' }}</textarea>
+    </div>
+    <div class="form-row">
+      <label>Category</label>
+      <select name="category">
+        {% for c in categories %}
+        <option value="{{ c }}" {% if tpl and tpl.category==c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-row">
+      <label>Template body (Jinja allowed, e.g. {{'{{student.name}}'}})</label>
+      <textarea name="body" rows="14">{{ body if body else '' }}</textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn primary-btn">{% if mode=='new' %}Create{% else %}Save & New Version{% endif %}</button>
+      <a href="{{ url_for('trainer_templates') }}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

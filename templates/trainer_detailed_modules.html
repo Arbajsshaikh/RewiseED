@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Detailed Modules{% endblock %}
+
+{% block content %}
+<div class="dm-layout">
+
+  <!-- LEFT -->
+  <aside class="dm-courses">
+    <h3>Courses</h3>
+    {% for c in courses %}
+  <div class="course-item" 
+       data-id="{{ c.id }}"
+       data-title="{{ c.title }}">
+    {{ c.title }}
+  </div>
+{% endfor %}
+
+  </aside>
+
+  <!-- CENTER -->
+   
+  <section class="dm-input">
+    <a href="{{ url_for('trainer_courses') }}" class="btn primary-btn">Dashboard</a>
+    <h2 id="courseTitle">Select a course</h2>
+
+    <textarea id="rawContent" placeholder="Paste content here..."></textarea>
+
+    <button id="generateBtn">Generate Topics</button>
+
+    <div id="modulesContainer"></div>
+  </section>
+
+  <!-- RIGHT -->
+  <section class="dm-playground">
+    <div id="learnPanel">
+      <p>Select a topic to learn interactively</p>
+    </div>
+  </section>
+
+</div>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/detailed_modules.css') }}">
+<script src="{{ url_for('static', filename='js/playground_engine.js') }}"></script>
+<script src="{{ url_for('static', filename='js/detailed_modules.js') }}"></script>
+<script src="/static/js/playground_kmeans.js"></script>
+
+{% endblock %}
+
+
+
+
+

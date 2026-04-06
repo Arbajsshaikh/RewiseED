@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}{{ student.name }} - Analytics{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/students.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/students.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  initStudentOverviewCharts({
+    dailyLabels: {{ daily_labels|tojson }},
+    dailyValues: {{ daily_values|tojson }},
+    monthlyLabels: {{ monthly_labels|tojson }},
+    monthlyValues: {{ monthly_values|tojson }},
+    courseLabels: {{ course_summaries|map(attribute='course.title')|list|tojson }},
+    courseProgress: {{ course_summaries|map(attribute='enrollment.progress')|list|tojson }},
+  });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span><span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item">
+        <span class="nav-icon">📚</span><span>Courses</span>
+      </a>
+      <a href="{{ url_for('trainer_students') }}" class="nav-item active">
+        <span class="nav-icon">👨‍🎓</span><span>Students</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span><span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">{{ student.name }}</h1>
+        <p class="welcome-subtitle">
+          Enrolled in {{ enrollments|length }} course{{ '' if enrollments|length == 1 else 's' }} ·
+          Avg progress: {{ avg_progress_all }}%
+        </p>
+      </div>
+      <div class="header-right">
+        <span class="student-email-pill">{{ student.email }}</span>
+      </div>
+    </header>
+
+    <section class="student-analytics-grid">
+      <div class="student-info-card">
+        <h2>Student details</h2>
+        <ul>
+          <li><strong>Name:</strong> {{ student.name }}</li>
+          <li><strong>Email:</strong> {{ student.email }}</li>
+          <li><strong>Enrollment since:</strong> {{ student.created_at.strftime('%Y-%m-%d') }}</li>
+          <li><strong>Total hours watched:</strong> {{ "%.1f"|format(total_hours) }} hrs</li>
+        </ul>
+      </div>
+
+      <div class="student-chart-card">
+        <h2>Daily study hours (last 14 days)</h2>
+        <canvas id="dailyHoursChart"></canvas>
+      </div>
+
+      <div class="student-chart-card">
+        <h2>Monthly study hours</h2>
+        <canvas id="monthlyHoursChart"></canvas>
+      </div>
+
+      <div class="student-chart-card">
+        <h2>Per-course progress</h2>
+        <canvas id="courseProgressChart"></canvas>
+      </div>
+    </section>
+
+    <section class="students-table-panel">
+      <h2>Enrolled courses</h2>
+      <table class="students-table">
+        <thead>
+  <tr>
+    <th>Course</th>
+    <th>Progress</th>
+    <th>Price</th>
+    <th>Hours watched</th>
+    <th>Tests score</th>
+    <th>Enrollment date</th>
+    <th>Lectures</th>
+    <th>Assessments</th>
+    <th>Questions / Marks</th>
+  </tr>
+</thead>
+
+        <tbody>
+  {% for item in course_summaries %}
+  {% set stats = item.assessment_stats %}
+  <tr>
+    <td>
+      <a href="{{ url_for('trainer_student_course_detail',
+                         student_id=student.id,
+                         course_id=item.course.id) }}" class="course-link">
+        {{ item.course.title }}
+      </a>
+    </td>
+    <td>
+      <div class="progress-cell">
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: {{ item.enrollment.progress }}%;"></div>
+        </div>
+        <span class="progress-value">{{ item.enrollment.progress }}%</span>
+      </div>
+    </td>
+    <td>₹ {{ "%.0f"|format(item.course.price) }}</td>
+    <td>{{ "%.1f"|format(item.enrollment.hours_watched) }} h</td>
+    <td>{{ "%.1f"|format(item.enrollment.tests_score) }}%</td>
+    <td>{{ item.enrollment.enrolled_at.strftime('%Y-%m-%d') }}</td>
+    <td>
+      {{ item.watched_lectures }}/{{ item.total_lectures }}
+      ({{ item.remaining_lectures }} left)
+    </td>
+
+    <!-- NEW: assessments summary -->
+    <td>
+      {% if stats %}
+        {{ stats.total_assessments }} total<br>
+        {{ stats.attempted_assessments }} attempted<br>
+        {% if stats.last_assessment_date %}
+          Last: {{ stats.last_assessment_date.strftime('%Y-%m-%d') }}
+        {% else %}
+          Last: —
+        {% endif %}
+      {% else %}
+        No assessments
+      {% endif %}
+    </td>
+
+    <!-- NEW: questions & marks summary -->
+    <td>
+      {% if stats %}
+        {{ stats.attempted_questions }} attempted /
+        {{ stats.correct_answers }} correct<br>
+        {{ "%.1f"|format(stats.total_marks_obtained) }} /
+        {{ "%.1f"|format(stats.total_marks_available) }} marks
+      {% else %}
+        —
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+
+      </table>
+    </section>
+  </main>
+</div>
+{% endblock %}

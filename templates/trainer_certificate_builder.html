@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Certificate Builder{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/certificate.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/certificate.js') }}"></script>
+{% endblock %}
+
+
+{% block content %}
+<div class="certificate-builder">
+
+  <!-- INPUT PANEL -->
+  <aside class="cert-form">
+    <h2>Certificate Details</h2>
+
+    <label>Course</label>
+    <select id="course">
+      {% for c in courses %}
+      <option value="{{ c.title }}">{{ c.title }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Student Name</label>
+    <input id="student" placeholder="Student Full Name">
+
+    <label>Completion Date</label>
+    <input id="date" type="date">
+
+    <h3>Issued By</h3>
+
+    <input id="trainer" placeholder="Trainer Name">
+    <input id="designation" placeholder="Designation">
+
+    <label>Signature (Image URL)</label>
+    <input id="signature" placeholder="Paste image URL">
+
+    <button onclick="updateCert()">Update Preview</button>
+    <button onclick="downloadCert()">Download PDF</button>
+  </aside>
+
+  <!-- PREVIEW -->
+  <section class="cert-preview">
+    <iframe id="certFrame" src="/trainer/certificates/preview-ui"></iframe>
+
+  </section>
+
+</div>
+{% endblock %}

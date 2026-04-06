@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block title %}Students - Trainer - Academic{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/students.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/students.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item">
+        <span class="nav-icon">📚</span>
+        <span>Courses</span>
+      </a>
+      <a href="{{ url_for('trainer_students') }}" class="nav-item active">
+        <span class="nav-icon">👨‍🎓</span>
+        <span>Students</span>
+      </a>
+      <a href="{{ url_for('trainer_insights') }}" class="nav-item{% if request.endpoint == 'trainer_insights' %} active{% endif %}">
+  <span class="nav-icon">📊</span><span>Insights</span>
+</a>
+
+      <a href="{{ url_for('trainer_assessments_overview') }}" class="nav-item">
+        <span class="nav-icon">🧪</span>
+        <span>Assessments</span>
+      </a>
+      <a href="{{ url_for('trainer_resources') }}" class="nav-item">
+        <span class="nav-icon">📂</span>
+        <span>Resources</span>
+      </a>
+      <a href="{{ url_for('trainer_events') }}" class="nav-item">
+        <span class="nav-icon">📅</span>
+        <span>Events</span>
+      </a>
+      <a href="{{ url_for('trainer_community') }}" class="nav-item">
+        <span class="nav-icon">💬</span>
+        <span>Community</span>
+      </a>
+     <a href="{{ url_for('trainer_question_bank') }}" class="nav-item">
+  <span class="nav-icon">🧠</span><span>Question bank</span>
+</a>
+<a href="{{ url_for('trainer_groups') }}" class="nav-item">
+  <span class="nav-icon">👥</span><span>Groups</span>
+</a>
+<a href="{{ url_for('trainer_certificates') }}" class="nav-item">
+  <span class="nav-icon">🎓</span><span>Certificates</span>
+</a>
+
+<a href="{{ url_for('trainer_automations') }}" class="nav-item">
+  <span class="nav-icon">⚡</span><span>Automations</span>
+</a>
+
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('trainer_settings') }}" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span>Settings</span>
+      </a>
+      <a href="{{ url_for('trainer_help') }}" class="nav-item">
+        <span class="nav-icon">❓</span>
+        <span>Help Center</span>
+      </a>
+      <button class="dark-toggle" type="button">
+        <span>🌙</span>
+        <span>Dark Mode</span>
+      </button>
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span>
+        <span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">Students</h1>
+        <p class="welcome-subtitle">Track progress and performance of your learners.</p>
+      </div>
+      <div class="header-right">
+        <!-- later: add student manually -->
+      </div>
+    </header>
+
+    <section class="students-toolbar">
+      <div class="search-box">
+        <input type="text" id="studentSearch" placeholder="Search students by name or email..." />
+      </div>
+      <div class="filter-box">
+        <select id="statusFilter">
+  <option value="">All statuses</option>
+  <option value="Active">Active</option>
+  <option value="Completed">Completed</option>
+  <option value="Inactive">Inactive</option>
+</select>
+
+      </div>
+    </section>
+    
+
+
+
+    <section class="students-table-panel">
+      {% if students_data %}
+      <table class="students-table" id="studentsTable">
+       <thead>
+  <tr>
+    <th>AI</th>
+    <th>Student</th>
+    <th>Courses</th>
+    <th>Avg progress</th>
+    <th>Status</th>
+    <th>Actions</th>
+  </tr>
+</thead>
+
+
+        <tbody>
+          {% for item in students_data %}
+          <tr data-status="{{ item.status }}">
+            <!-- NEW: AI Feedback button -->
+    <td>
+      <form method="post"
+            action="{{ url_for('trainer_student_ai_feedback', student_id=item.student.id) }}"
+            class="inline-form">
+        <button type="submit" class="btn-sm btn-ghost">✨ AI</button>
+      </form>
+    </td>
+
+    <!-- Student name (click → analytics page) -->
+    <td>
+      <a href="{{ url_for('trainer_student_detail', student_id=item.student.id) }}" class="student-link">
+        {{ item.student.name }}
+      </a>
+    </td>
+
+    <td>{{ item.total_courses }}</td>
+    <td>{{ item.avg_progress }}%</td>
+    <td>{{ item.status }}</td>
+
+    <td>
+            <td>
+              <a href="{{ url_for('trainer_student_detail', student_id=item.student.id) }}" class="student-link">
+                {{ item.student.name }}
+              </a>
+            </td>
+            <td>{{ item.student.email }}</td>
+            <td>{{ item.total_courses }}</td>
+            <td>
+              <div class="progress-cell">
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: {{ item.avg_progress }}%;"></div>
+                </div>
+                <span class="progress-value">{{ item.avg_progress }}%</span>
+              </div>
+            </td>
+            <td>
+  {% if item.status == 'Inactive' %}
+    <span class="badge danger">Inactive</span>
+  {% elif item.status == 'Active' %}
+    <span class="badge success">Active</span>
+  {% else %}
+    <span class="badge warning">Completed</span>
+  {% endif %}
+</td>
+<td>
+  <form method="post"
+        action="{{ url_for('trainer_student_toggle_status', student_id=item.student.id) }}"
+        class="inline-form">
+    <button type="submit" class="btn-sm btn-ghost">
+      {% if item.student.is_active %}Deactivate{% else %}Activate{% endif %}
+    </button>
+  </form>
+</td>
+
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <p>No students enrolled in your courses yet.</p>
+      </div>
+      {% endif %}
+    </section>
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}Issue Certificate{% endblock %}
+
+{% block content %}
+<div class="cert-page">
+ <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item">
+        <span class="nav-icon">📚</span>
+        <span>Courses</span>
+      </a>
+      <a href="{{ url_for('trainer_students') }}" class="nav-item">
+        <span class="nav-icon">👨‍🎓</span>
+        <span>Students</span>
+      </a>
+      <a href="{{ url_for('trainer_insights') }}" class="nav-item{% if request.endpoint == 'trainer_insights' %} active{% endif %}">
+  <span class="nav-icon">📊</span><span>Insights</span>
+</a>
+
+      <a href="{{ url_for('trainer_assessments_overview') }}" class="nav-item">
+        <span class="nav-icon">🧪</span>
+        <span>Assessments</span>
+      </a>
+      <a href="{{ url_for('trainer_resources') }}" class="nav-item">
+        <span class="nav-icon">📂</span>
+        <span>Resources</span>
+      </a>
+      <a href="{{ url_for('trainer_events') }}" class="nav-item">
+        <span class="nav-icon">📅</span>
+        <span>Events</span>
+      </a>
+      <a href="{{ url_for('trainer_community') }}" class="nav-item">
+        <span class="nav-icon">💬</span>
+        <span>Community</span>
+      </a>
+     <a href="{{ url_for('trainer_question_bank') }}" class="nav-item">
+  <span class="nav-icon">🧠</span><span>Question bank</span>
+</a>
+<a href="{{ url_for('trainer_groups') }}" class="nav-item ">
+  <span class="nav-icon">👥</span><span>Groups</span>
+</a>
+<a href="{{ url_for('trainer_certificate_issue') }}" class="nav-item active">
+  <span class="nav-icon">🎓</span>
+  <span>Certificates</span>
+</a>
+<a href="{{ url_for('trainer_automations') }}" class="nav-item">
+  <span class="nav-icon">⚡</span><span>Automations</span>
+</a>
+
+
+    </nav>
+
+    
+  </aside>
+
+  <!-- INPUT PANEL -->
+  <div class="cert-form">
+    <h2>Certificate Details</h2>
+
+    <label>Student Name</label>
+    <input type="text" id="studentName" placeholder="Enter student name">
+
+<select id="courseSelect">
+  <option value="">Select Course</option>
+</select>
+<script src="{{ url_for('static', filename='js/certificate.js') }}"></script>
+
+
+
+    <label>Issue Date</label>
+    <input type="date" id="issueDate">
+
+    <label>Trainer Name</label>
+    <input type="text" id="trainerName" placeholder="Enter trainer name">
+
+
+
+
+
+
+
+    <label>Trainer Signature</label>
+
+<canvas id="signaturePad" width="260" height="120"></canvas>
+
+<div class="sig-actions">
+  <button type="button" onclick="clearSignature()">Clear</button>
+  <button type="button" onclick="saveSignature()">Save Signature</button>
+</div>
+
+
+
+
+
+    <button onclick="downloadCertificate()">Download PDF</button>
+  </div>
+
+  <!-- CERTIFICATE PREVIEW -->
+  <div class="cert-preview-wrapper">
+    <div class="certificate" id="certificate">
+
+      <div class="cert-left">
+        <div class="cert-badge">
+          <strong>RewiseED</strong><br>
+          grants and certifies this certificate on<br>
+          <span id="prevDate">--</span>
+        </div>
+
+        <div class="cert-logo">RewiseED</div>
+      </div>
+
+      <div class="cert-main">
+        <h1>Certificate</h1>
+        <h2>Of Completion</h2>
+
+        <p class="cert-text">This Certificate is Given To</p>
+
+        <h3 id="prevStudent">STUDENT NAME</h3>
+
+        <p class="cert-desc">
+          Because he has completed
+          <strong id="prevCourse">Course Name</strong><br>
+          on <span id="prevDate2">Date</span><br>
+          with an "A" grade under my training program via RewiseED.
+        </p>
+
+       <div class="cert-footer">
+  <div class="cert-signature">
+    <img id="signaturePreview" />
+    <div id="prevTrainer">TRAINER NAME</div>
+  </div>
+</div>
+
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+<script>
+const bind = (id, target) => {
+  document.getElementById(id).addEventListener("input", e => {
+    document.getElementById(target).innerText = e.target.value || document.getElementById(target).innerText;
+  });
+};
+
+bind("studentName", "prevStudent");
+document.getElementById("courseSelect").addEventListener("change", e => {
+  document.getElementById("prevCourse").innerText =
+    e.target.selectedOptions[0]?.text || "Course Name";
+});
+bind("trainerName", "prevTrainer");
+
+document.getElementById("issueDate").addEventListener("input", e => {
+  document.getElementById("prevDate").innerText = e.target.value;
+  document.getElementById("prevDate2").innerText = e.target.value;
+});
+
+async function downloadCertificate() {
+  const canvas = await html2canvas(document.getElementById("certificate"), { scale: 2 });
+  const imgData = canvas.toDataURL("image/png");
+
+  const pdf = new jspdf.jsPDF("landscape", "pt", "a4");
+  pdf.addImage(imgData, "PNG", 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+  pdf.save("certificate.pdf");
+}
+</script>
+{% endblock %}
+
+
+

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Certificate</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/certificate.css') }}">
+</head>
+
+<body class="certificate-page">
+
+<div class="certificate">
+
+  <h1>Certificate of Completion</h1>
+
+  <p class="subtitle">This is to certify that</p>
+
+  <h2 class="student">{{ student }}</h2>
+
+  <p class="content">
+    has successfully completed the course
+  </p>
+
+  <h3 class="course">{{ course }}</h3>
+
+  <p class="date">Completed on {{ date }}</p>
+
+  <div class="footer">
+    <div class="sign">
+
+      {% if signature %}
+  <img src="{{ signature }}" class="signature-img">
+{% endif %}
+
+
+      <hr>
+
+      <strong>{{ trainer }}</strong><br>
+      <small>{{ designation }}</small>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

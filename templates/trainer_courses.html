@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}Courses - Trainer - Academic{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/courses.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/courses.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <!-- Sidebar (same as dashboard) -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item active">
+        <span class="nav-icon">📚</span>
+        <span>Courses</span>
+      </a>
+      <a href="{{ url_for('trainer_students') }}" class="nav-item">
+        <span class="nav-icon">👨‍🎓</span>
+        <span>Students</span>
+      </a>
+      <a href="{{ url_for('trainer_insights') }}" class="nav-item{% if request.endpoint == 'trainer_insights' %} active{% endif %}">
+  <span class="nav-icon">📊</span><span>Insights</span>
+</a>
+
+      <a href="{{ url_for('trainer_assessments_overview') }}" class="nav-item">
+        <span class="nav-icon">🧪</span>
+        <span>Assessments</span>
+      </a>
+      <a href="{{ url_for('trainer_resources') }}" class="nav-item">
+        <span class="nav-icon">📂</span>
+        <span>Resources</span>
+      </a>
+      <a href="{{ url_for('trainer_events') }}" class="nav-item">
+        <span class="nav-icon">📅</span>
+        <span>Events</span>
+      </a>
+      <a href="{{ url_for('trainer_community') }}" class="nav-item">
+        <span class="nav-icon">💬</span>
+        <span>Community</span>
+      </a>
+     <a href="{{ url_for('trainer_question_bank') }}" class="nav-item">
+  <span class="nav-icon">🧠</span><span>Question bank</span>
+</a>
+<a href="{{ url_for('trainer_groups') }}" class="nav-item">
+  <span class="nav-icon">👥</span><span>Groups</span>
+</a>
+<a href="{{ url_for('trainer_certificate_issue') }}" class="nav-item">
+  <span class="nav-icon">🎓</span>
+  <span>Certificates</span>
+</a>
+
+<a href="{{ url_for('trainer_automations') }}" class="nav-item">
+  <span class="nav-icon">⚡</span><span>Automations</span>
+</a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="#" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span>Settings</span>
+      </a>
+      <a href="#" class="nav-item">
+        <span class="nav-icon">❓</span>
+        <span>Help Center</span>
+      </a>
+      <button class="dark-toggle" type="button">
+        <span>🌙</span>
+        <span>Dark Mode</span>
+      </button>
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span>
+        <span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">Your Courses</h1>
+        <p class="welcome-subtitle">Create, manage and update your course catalog.</p>
+      </div>
+      <div class="header-right">
+        <a href="{{ url_for('trainer_course_new') }}" class="btn primary-btn">+ New Course</a>
+      </div>
+    </header>
+
+    <section class="courses-toolbar">
+      <div class="search-box">
+        <input type="text" id="courseSearch" placeholder="Search courses..." />
+      </div>
+      <div class="filter-box">
+        <select id="levelFilter">
+          <option value="">All levels</option>
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="courses-table-panel">
+      {% if courses %}
+      <table class="courses-table" id="coursesTable">
+        <thead>
+          <tr>
+            <th>Course</th>
+            <th>Level</th>
+            <th>Duration</th>
+            <th>Price</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+<tbody>
+  {% for c in courses %}
+  <tr data-level="{{ c.level }}">
+    <!-- Course title with inner tilt-card -->
+    <td>
+      <div class="tilt-card">
+        <a href="{{ url_for('trainer_course_detail', course_id=c.id) }}" class="course-link">
+          {{ c.title }}
+        </a>
+        <div class="course-sub">{{ c.level }} · {{ c.duration_hours }} h</div>
+      </div>
+    </td>
+
+    <!-- Level -->
+    <td>{{ c.level }}</td>
+
+    <!-- Duration -->
+    <td>{{ c.duration_hours }} h</td>
+
+    <!-- Price (editable) -->
+    <td>
+      <form method="post"
+            action="{{ url_for('trainer_course_update_price', course_id=c.id) }}"
+            class="inline-form">
+        <span>₹</span>
+        <input type="number" name="price" step="0.5"
+               value="{{ '%.0f'|format(c.price) }}"
+               class="price-input">
+        <button type="submit" class="btn-sm btn-ghost">Save</button>
+      </form>
+    </td>
+
+    <!-- Actions (single column only) -->
+    <td class="actions-col">
+      <a href="{{ url_for('trainer_course_rewiseed', course_id=c.id) }}"
+         class="btn-sm btn-ghost" title="Generate AI bundle for this course">
+        ⚡ RewiseED
+      </a>
+
+      <a href="{{ url_for('trainer_course_edit', course_id=c.id) }}" class="btn-sm btn-ghost">
+        Edit
+      </a>
+
+      <form method="post"
+            action="{{ url_for('trainer_course_delete', course_id=c.id) }}"
+            class="inline-form delete-course-form" style="display:inline;">
+        <button type="submit" class="btn-sm btn-danger">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</tbody>
+
+
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <p>You haven’t created any courses yet.</p>
+        <a href="{{ url_for('trainer_course_new') }}" class="btn primary-btn">Create your first course</a>
+      </div>
+      {% endif %}
+    </section>
+
+
+
+
+ 
+
+
+<div class="header-right">
+        <a href="{{ url_for('trainer_detailed_modules') }}" class="btn primary-btn">Detailed Modules 🧠</a>
+      </div>
+<!-- <a href="{{ url_for('entrepreneured') }}"
+   class="btn primary-btn"
+   style="margin-top:12px">
+   🚀 Open EntrepreneurED (Trainer)
+</a>-->
+
+
+  </main>
+</div>
+{% endblock %}

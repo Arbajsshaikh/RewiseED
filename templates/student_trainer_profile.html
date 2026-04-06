@@ -1,0 +1,244 @@
+    
+</div>{% extends "base.html" %}
+{% block title %}Trainer Profile{% endblock %}
+
+{% block content %}
+<div class="student-page">
+ <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('student_dashboard') }}" class="nav-item active">🏠 Dashboard</a>
+      <a href="{{ url_for('student_courses') }}" class="nav-item">
+  📚 My Courses
+</a>
+        <a href="{{ url_for('student_trainers') }}" class="nav-item">🏠 Trainer</a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('logout') }}" class="nav-item logout">⏏ Logout</a>
+    </div>
+  </aside>
+
+<aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('student_dashboard') }}" class="nav-item">🏠 Dashboard</a>
+      <a href="{{ url_for('student_courses') }}" class="nav-item">
+  📚 My Courses
+</a>
+        <a href="{{ url_for('student_trainers') }}" class="nav-item active">🏠 Trainer</a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('logout') }}" class="nav-item logout">⏏ Logout</a>
+    </div>
+  </aside>
+<div class="page">
+  <h1>{{ trainer.name }}</h1>
+  <p>{{ trainer.bio }}</p>
+
+  <h2>Courses Offered</h2>
+
+  <div class="course-grid">
+    {% for c in courses %}
+    <div class="course-card">
+      <h3>{{ c.title }}</h3>
+      <p>Level: {{ c.level }}</p>
+      <p>Duration: {{ c.duration_hours }} hrs</p>
+      <p class="price">₹{{ c.price }}</p>
+
+      <a href="{{ url_for('student_course_gate', course_id=c.id) }}"
+         class="btn-primary">
+        Enroll Now
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+</div>
+<style>
+.trainer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+.trainer-card {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.08);
+}
+.trainer-card h3 { color: #0f172a; }
+.trainer-card p { color: #475569; }
+</style>
+
+<h2>All Trainers</h2>
+
+<div class="trainer-grid">
+  {% for t in trainers %}
+  <div class="trainer-card">
+    <h3>{{ t.name }}</h3>
+    <p>{{ t.headline or "Trainer" }}</p>
+    <a href="/student/trainer/{{ t.id }}/courses" class="btn-primary">View Courses</a>
+  </div>
+  {% endfor %}
+</div>
+<style>
+/* ===============================
+   STUDENT UI – SAFE LOCAL STYLES
+   =============================== */
+
+/* Page background */
+.student-page,
+.page,
+.main-content {
+  background: linear-gradient(180deg, #eef6fb 0%, #e8f3f8 100%);
+  color: #0f172a;
+}
+
+/* Section headings */
+h1, h2, h3 {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* Cards (courses, trainers, stats) */
+.course-card,
+.trainer-card,
+.stat-card,
+.checkout-box {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 15px 30px rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+/* Course title */
+.course-card h3,
+.trainer-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+/* Trainer name / subtitle */
+.course-card p,
+.trainer-card p,
+.small-text {
+  color: #475569;
+  font-size: 14px;
+}
+
+/* Progress text */
+.progress-text {
+  color: #334155;
+  font-weight: 500;
+}
+
+/* Progress bar */
+.progress-bar {
+  background: #e5e7eb;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6366f1, #22c55e);
+}
+
+/* Buttons */
+.btn-primary {
+  background: #6366f1;
+  color: #ffffff !important;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary:hover {
+  background: #4f46e5;
+}
+
+.btn-secondary {
+  background: #e5e7eb;
+  color: #0f172a;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* Grid layouts */
+.course-grid,
+.trainer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+/* Video player layout */
+.player-layout {
+  display: flex;
+  gap: 20px;
+}
+
+.video-list {
+  width: 280px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 10px 20px rgba(0,0,0,.08);
+}
+
+.video-item {
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #0f172a;
+}
+
+.video-item:hover {
+  background: #f1f5f9;
+}
+
+/* Fix links visibility */
+a {
+  color: #2563eb;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Prevent white text bugs */
+* {
+  text-shadow: none !important;
+}
+
+</style>
+{% endblock %}

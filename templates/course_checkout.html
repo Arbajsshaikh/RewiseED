@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="student-page">
+  <div class="dashboard-page">
+
+    <!-- ========== SIDEBAR ========== -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-logo">R</div>
+          <span class="brand-name">RewiseED</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="{{ url_for('student_dashboard') }}" class="nav-item">🏠 Dashboard</a>
+        <a href="{{ url_for('student_courses') }}" class="nav-item">📚 My Courses</a>
+        <a href="{{ url_for('student_trainers') }}" class="nav-item">👨‍🏫 Trainers</a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="{{ url_for('logout') }}" class="nav-item logout">⏏ Logout</a>
+      </div>
+    </aside>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="main-content">
+
+      <section class="panel full checkout-panel">
+        <h2>Course Checkout</h2>
+
+        <div class="checkout-card">
+
+          <!-- COURSE INFO -->
+          <div class="checkout-header">
+            <h3 class="course-title">{{ course.title }}</h3>
+            <span class="course-level">{{ course.level }}</span>
+          </div>
+
+          <p class="trainer-name">
+            👨‍🏫 {{ course.trainer.name }}
+          </p>
+
+          <div class="checkout-meta">
+            <p>⏱ Duration: {{ course.duration_hours }} hours</p>
+            <p>📘 Level: {{ course.level }}</p>
+          </div>
+
+          <!-- PRICE -->
+          <div class="price-box">
+            <span>Total Price</span>
+            <h3 class="price">₹{{ course.price }}</h3>
+          </div>
+
+          <!-- PAYMENT -->
+          <form method="post" class="checkout-actions">
+            <button type="submit" class="btn-primary">
+              💳 Pay & Enroll
+            </button>
+          </form>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ==============================
+     CHECKOUT – LIGHT THEME
+================================ -->
+<style>
+/* ===== PAGE ===== */
+.student-page {
+  background: #eef6fb;
+  min-height: 100vh;
+  color: #0f172a;
+}
+
+/* ===== CHECKOUT CARD ===== */
+.checkout-card {
+  max-width: 460px;
+  margin: 40px auto;
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 26px;
+
+  box-shadow:
+    0 18px 45px rgba(15, 23, 42, 0.12),
+    0 6px 14px rgba(15, 23, 42, 0.06);
+
+  transition: transform .35s ease, box-shadow .35s ease;
+}
+
+.checkout-card:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 30px 70px rgba(15, 23, 42, 0.18),
+    0 12px 28px rgba(15, 23, 42, 0.10);
+}
+
+/* ===== HEADER ===== */
+.checkout-header h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.course-level {
+  display: inline-block;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 12px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+/* ===== TRAINER ===== */
+.trainer-name {
+  margin-top: 12px;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ===== META ===== */
+.checkout-meta p {
+  margin: 8px 0;
+  color: #475569;
+  font-size: 14px;
+}
+
+/* ===== PRICE ===== */
+.price-box {
+  margin: 22px 0;
+  padding: 16px;
+  border-radius: 14px;
+  background: #f8fafc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price-box span {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.price {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* ===== ACTION ===== */
+.checkout-actions {
+  margin-top: 18px;
+  text-align: center;
+}
+
+/* ===== BUTTON ===== */
+.btn-primary {
+  background: #6366f1;
+  color: #ffffff !important;
+  border-radius: 14px;
+  padding: 12px 22px;
+  font-weight: 600;
+  font-size: 15px;
+  display: inline-block;
+  border: none;
+  cursor: pointer;
+
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.btn-primary:hover {
+  background: #4f46e5;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(99,102,241,0.35);
+}
+
+/* ===== SAFETY ===== */
+.checkout-card * {
+  text-shadow: none !important;
+}
+</style>
+
+{% endblock %}
+
+<style>
+/* ===============================
+   STUDENT UI – SAFE LOCAL STYLES
+   =============================== */
+
+/* Page background */
+.student-page,
+.page,
+.main-content {
+  background: linear-gradient(180deg, #eef6fb 0%, #e8f3f8 100%);
+  color: #0f172a;
+}
+
+/* Section headings */
+h1, h2, h3 {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* Cards (courses, trainers, stats) */
+.course-card,
+.trainer-card,
+.stat-card,
+.checkout-box {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 15px 30px rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+/* Course title */
+.course-card h3,
+.trainer-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+/* Trainer name / subtitle */
+.course-card p,
+.trainer-card p,
+.small-text {
+  color: #475569;
+  font-size: 14px;
+}
+
+/* Progress text */
+.progress-text {
+  color: #334155;
+  font-weight: 500;
+}
+
+/* Progress bar */
+.progress-bar {
+  background: #e5e7eb;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6366f1, #22c55e);
+}
+
+/* Buttons */
+.btn-primary {
+  background: #6366f1;
+  color: #ffffff !important;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary:hover {
+  background: #4f46e5;
+}
+
+.btn-secondary {
+  background: #e5e7eb;
+  color: #0f172a;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+/* Grid layouts */
+.course-grid,
+.trainer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+/* Video player layout */
+.player-layout {
+  display: flex;
+  gap: 20px;
+}
+
+.video-list {
+  width: 280px;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 10px 20px rgba(0,0,0,.08);
+}
+
+.video-item {
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #0f172a;
+}
+
+.video-item:hover {
+  background: #f1f5f9;
+}
+
+/* Fix links visibility */
+a {
+  color: #2563eb;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Prevent white text bugs */
+* {
+  text-shadow: none !important;
+}
+
+</style>
+{% endblock %}

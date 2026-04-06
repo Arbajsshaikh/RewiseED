@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Sign In - Academic{% endblock %}
+
+{% block content %}
+<div class="page-wrapper auth">
+  <div class="auth-card">
+    <div class="auth-left">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+
+      <div class="auth-main">
+        <h1 class="auth-title">Sign in to your account</h1>
+        <p class="auth-subtitle">Choose your role and enter your details</p>
+
+        <div class="social-login">
+          <button type="button" class="btn social-btn">
+            <span class="social-icon">G</span>
+            <span>Google</span>
+          </button>
+          <button type="button" class="btn social-btn">
+            <span class="social-icon">T</span>
+            <span>Twitter</span>
+          </button>
+        </div>
+
+        <div class="divider">
+          <span>OR</span>
+        </div>
+
+        <form method="post" class="form">
+          <div class="form-group">
+            <label>Select role</label>
+            <div class="role-switch">
+              <input type="radio" id="login-trainer" name="role" value="trainer" checked>
+              <label for="login-trainer" class="switch-option">Trainer</label>
+
+              <input type="radio" id="login-student" name="role" value="student">
+              <label for="login-student" class="switch-option">Student</label>
+
+              <span class="switch-slider"></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" placeholder="trainer@example.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <div class="password-wrapper">
+              <input id="password" name="password" type="password" placeholder="Password123" required>
+              <button class="icon-button" type="button" id="togglePassword" aria-label="Toggle password visibility">
+                👁
+              </button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label class="checkbox">
+              <input type="checkbox" name="keep_logged_in" checked>
+              <span>Keep me logged in</span>
+            </label>
+            <a class="link" href="#">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn primary-btn full-width">Sign In</button>
+        </form>
+
+        <!-- 🔹 Add this block for Sign Up -->
+        <p class="signup-text" style="margin-top: 14px; font-size: 0.9rem;">
+          Don’t have an account?
+          <a class="link" href="{{ url_for('signup') }}">Sign Up</a>
+        </p>
+        <!-- 🔹 End Sign Up block -->
+
+      </div>
+
+      <div class="auth-footer">
+        <span>© 2024 Academic</span>
+        <div class="footer-right">
+          <span>ENG</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-right">
+      <div class="hero-copy">
+        <h2>Empower learners with beautiful courses</h2>
+        <p>
+          Manage your classes, track progress, and deliver outstanding learning experiences from one sleek dashboard.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block title %}Community - Trainer - Academic{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item">
+        <span class="nav-icon">📚</span>
+        <span>Courses</span>
+      </a>
+      <a href="{{ url_for('trainer_students') }}" class="nav-item">
+        <span class="nav-icon">👨‍🎓</span>
+        <span>Students</span>
+      </a><a href="{{ url_for('trainer_insights') }}" class="nav-item{% if request.endpoint == 'trainer_insights' %} active{% endif %}">
+  <span class="nav-icon">📊</span><span>Insights</span>
+</a>
+
+      <a href="{{ url_for('trainer_assessments_overview') }}" class="nav-item">
+        <span class="nav-icon">🧪</span>
+        <span>Assessments</span>
+      </a>
+      <a href="{{ url_for('trainer_resources') }}" class="nav-item">
+        <span class="nav-icon">📂</span>
+        <span>Resources</span>
+      </a>
+      <a href="{{ url_for('trainer_events') }}" class="nav-item">
+        <span class="nav-icon">📅</span>
+        <span>Events</span>
+      </a>
+      <a href="{{ url_for('trainer_community') }}" class="nav-item active">
+        <span class="nav-icon">💬</span>
+        <span>Community</span>
+      </a>
+     
+<a href="{{ url_for('trainer_question_bank') }}" class="nav-item">
+  <span class="nav-icon">🧠</span><span>Question bank</span>
+</a>
+<a href="{{ url_for('trainer_groups') }}" class="nav-item">
+  <span class="nav-icon">👥</span><span>Groups</span>
+</a>
+<a href="{{ url_for('trainer_certificate_issue') }}" class="nav-item">
+  <span class="nav-icon">🎓</span>
+  <span>Certificates</span>
+</a>
+
+<a href="{{ url_for('trainer_automations') }}" class="nav-item">
+  <span class="nav-icon">⚡</span><span>Automations</span>
+</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('trainer_settings') }}" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span>Settings</span>
+      </a>
+      <a href="{{ url_for('trainer_help') }}" class="nav-item">
+        <span class="nav-icon">❓</span>
+        <span>Help Center</span>
+      </a>
+      <button class="dark-toggle" type="button">
+        <span>🌙</span>
+        <span>Dark Mode</span>
+      </button>
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span>
+        <span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">Community hub</h1>
+        <p class="welcome-subtitle">
+          Post announcements, start discussions and keep your students updated.
+        </p>
+      </div>
+    </header>
+
+    <section class="content-grid">
+      <!-- Announcements panel -->
+      <div class="panel wide">
+        <div class="panel-header">
+          <h2>Announcements</h2>
+        </div>
+
+        <!-- New announcement form -->
+        <form method="post" class="form" style="margin-bottom: 16px;">
+          <input type="hidden" name="form_type" value="announcement">
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="ann_title">Title</label>
+              <input id="ann_title" name="title" type="text"
+                     placeholder="e.g. New module released"
+                     required>
+            </div>
+
+            <div class="form-group">
+              <label for="ann_course_id">Course</label>
+              <select id="ann_course_id" name="course_id">
+                <option value="">All courses</option>
+                {% for c in courses %}
+                <option value="{{ c.id }}">{{ c.title }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="ann_body">Message</label>
+            <textarea id="ann_body" name="body" rows="3"
+                      placeholder="Short announcement for your learners..."
+                      required></textarea>
+          </div>
+
+          <div class="form-row" style="margin-top: 4px;">
+            <label class="checkbox">
+              <input type="checkbox" name="is_pinned">
+              <span>Pin to top</span>
+            </label>
+            <button type="submit" class="btn primary-btn">
+              Post announcement
+            </button>
+          </div>
+        </form>
+
+        <!-- Announcement list -->
+        {% if announcements %}
+        <ul class="session-list">
+          {% for a in announcements %}
+          <li class="session-item">
+            <div class="session-main">
+              <div class="session-title">
+                {% if a.is_pinned %}
+                  📌
+                {% endif %}
+                {{ a.title }}
+              </div>
+              <div class="session-course">
+                {% if a.course_id and courses_by_id.get(a.course_id) %}
+                  {{ courses_by_id[a.course_id].title }}
+                {% else %}
+                  All courses
+                {% endif %}
+                · {{ a.created_at.strftime('%b %d, %Y · %H:%M') }}
+              </div>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state">
+          <p>No announcements yet. Post your first update above.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Discussions panel -->
+      <div class="panel side">
+        <div class="panel-header">
+          <h2>Discussions</h2>
+        </div>
+
+        <!-- New thread form -->
+        <form method="post" class="form" style="margin-bottom: 16px;">
+          <input type="hidden" name="form_type" value="thread">
+
+          <div class="form-group">
+            <label for="thread_title">Thread title</label>
+            <input id="thread_title" name="title" type="text"
+                   placeholder="e.g. Share your project progress"
+                   required>
+          </div>
+
+          <div class="form-group">
+            <label for="thread_course_id">Course (optional)</label>
+            <select id="thread_course_id" name="course_id">
+              <option value="">General</option>
+              {% for c in courses %}
+              <option value="{{ c.id }}">{{ c.title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="thread_body">Starter message</label>
+            <textarea id="thread_body" name="body" rows="3"
+                      placeholder="Ask a question or start a conversation..."
+                      required></textarea>
+          </div>
+
+          <div class="form-row" style="justify-content: flex-end;">
+            <button type="submit" class="btn primary-btn">
+              Create thread
+            </button>
+          </div>
+        </form>
+
+        <!-- Threads list -->
+        {% if threads %}
+        <ul class="session-list">
+          {% for t in threads %}
+          <li class="session-item">
+            <div class="session-main">
+              <a href="{{ url_for('trainer_thread_detail', thread_id=t.id) }}"
+                 class="session-title" style="text-decoration:none;">
+                {% if t.is_pinned %}
+                  📌
+                {% endif %}
+                {{ t.title }}
+              </a>
+              <div class="session-course">
+                {% if t.course_id and courses_by_id.get(t.course_id) %}
+                  {{ courses_by_id[t.course_id].title }}
+                {% else %}
+                  General
+                {% endif %}
+                · {{ t.created_at.strftime('%b %d, %Y · %H:%M') }}
+              </div>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="empty-state">
+          <p>No discussion threads yet. Start one with the form above.</p>
+        </div>
+        {% endif %}
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}

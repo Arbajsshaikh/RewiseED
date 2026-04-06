@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}Events - Trainer - Academic{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span><span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item">
+        <span class="nav-icon">📚</span><span>Courses</span>
+      </a>
+      <a href="{{ url_for('trainer_students') }}" class="nav-item">
+        <span class="nav-icon">👨‍🎓</span><span>Students</span>
+      </a><a href="{{ url_for('trainer_insights') }}" class="nav-item{% if request.endpoint == 'trainer_insights' %} active{% endif %}">
+  <span class="nav-icon">📊</span><span>Insights</span>
+</a>
+
+      <a href="{{ url_for('trainer_assessments_overview') }}" class="nav-item">
+        <span class="nav-icon">🧪</span><span>Assessments</span>
+      </a> <a href="{{ url_for('trainer_resources') }}" class="nav-item">
+        <span class="nav-icon">📂</span><span>Resources</span>
+      </a>
+      <a href="{{ url_for('trainer_events') }}" class="nav-item active">
+        <span class="nav-icon">📅</span><span>Events</span>
+      </a>
+      <a href="{{ url_for('trainer_community') }}" class="nav-item">
+        <span class="nav-icon">💬</span><span>Community</span>
+      </a><a href="{{ url_for('trainer_question_bank') }}" class="nav-item">
+  <span class="nav-icon">🧠</span><span>Question bank</span>
+</a>
+<a href="{{ url_for('trainer_groups') }}" class="nav-item">
+  <span class="nav-icon">👥</span><span>Groups</span>
+</a>
+<a href="{{ url_for('trainer_certificates') }}" class="nav-item">
+  <span class="nav-icon">🎓</span><span>Certificates</span>
+</a>
+
+<a href="{{ url_for('trainer_automations') }}" class="nav-item">
+  <span class="nav-icon">⚡</span><span>Automations</span>
+</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('trainer_settings') }}" class="nav-item">
+        <span class="nav-icon">⚙️</span><span>Settings</span>
+      </a>
+      <a href="{{ url_for('trainer_help') }}" class="nav-item">
+        <span class="nav-icon">❓</span><span>Help Center</span>
+      </a>
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span><span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">Events & live sessions</h1>
+        <p class="welcome-subtitle">
+          Schedule and manage your upcoming classes, Q&A sessions, and reviews.
+        </p>
+      </div>
+    </header>
+
+    <section class="content-grid">
+      <!-- Left panel: create new session -->
+      <div class="panel side">
+        <div class="panel-header">
+          <h2>Create new session</h2>
+        </div>
+
+        <form method="post" class="form">
+          <div class="form-group">
+            <label for="session_title">Title</label>
+            <input id="session_title" name="title" type="text"
+                   placeholder="e.g. Live Q&A, Project Review"
+                   required>
+          </div>
+
+          <div class="form-group">
+            <label for="session_course">Course</label>
+            <select id="session_course" name="course_id" required>
+              <option value="">Select a course</option>
+              {% for c in courses %}
+              <option value="{{ c.id }}">{{ c.title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="session_datetime">Date & time</label>
+            <input id="session_datetime"
+                   name="start_time"
+                   type="datetime-local"
+                   required>
+          </div>
+
+          <div class="form-row" style="justify-content: flex-end;">
+            <button type="submit" class="btn primary-btn">
+              Schedule session
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right panel: upcoming & past sessions -->
+      <div class="panel wide">
+        <div class="panel-header">
+          <h2>Upcoming sessions</h2>
+        </div>
+
+        {% if upcoming_sessions %}
+        <table class="courses-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Course</th>
+              <th>Date & time</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in upcoming_sessions %}
+            <tr>
+              <td>{{ s.title }}</td>
+              <td>{{ s.course.title }}</td>
+              <td>{{ s.start_time.strftime('%b %d, %Y · %H:%M') }}</td>
+              <td class="actions-col">
+                <!-- For now only delete; edit can be added later -->
+                <form method="post"
+                      action="{{ url_for('trainer_event_delete', session_id=s.id) }}"
+                      class="inline-form">
+                  <button type="submit" class="btn-sm btn-danger">
+                    Delete
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+          <p>No upcoming sessions yet. Schedule one using the form on the left.</p>
+        </div>
+        {% endif %}
+
+        <div style="margin-top: 24px;">
+          <h2 style="margin-bottom: 10px;">Recent past sessions</h2>
+          {% if past_sessions %}
+          <table class="courses-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Course</th>
+                <th>Date & time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for s in past_sessions %}
+              <tr>
+                <td>{{ s.title }}</td>
+                <td>{{ s.course.title }}</td>
+                <td>{{ s.start_time.strftime('%b %d, %Y · %H:%M') }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div class="empty-state">
+            <p>No past sessions to show yet.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}

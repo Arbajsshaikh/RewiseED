@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}{{ student.name }} - {{ course.title }} Report{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/students.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/students.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  initStudentCourseCharts({
+    dailyLabels: {{ daily_labels|tojson }},
+    dailyValues: {{ daily_values|tojson }},
+  });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span><span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item">
+        <span class="nav-icon">📚</span><span>Courses</span>
+      </a>
+      <a href="{{ url_for('trainer_students') }}" class="nav-item active">
+        <span class="nav-icon">👨‍🎓</span><span>Students</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span><span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="main-header">
+  <div>
+    <h1 class="welcome-title">{{ student.name }} · {{ course.title }}</h1>
+    <p class="welcome-subtitle">
+      Progress: {{ enrollment.progress }}% · Price: ₹ {{ "%.0f"|format(course.price) }}
+    </p>
+  </div>
+  <div class="header-right">
+    <a href="{{ url_for('trainer_student_detail', student_id=student.id) }}" class="btn-sm btn-ghost">
+      ← Back to {{ student.name }}
+    </a>
+  </div>
+</header>
+
+
+    <section class="student-course-grid">
+      <div class="student-info-card">
+        <h2>Summary</h2>
+        <ul>
+          <li><strong>Enrollment date:</strong> {{ enrollment.enrolled_at.strftime('%Y-%m-%d') }}</li>
+          <li><strong>Hours watched:</strong> {{ "%.1f"|format(enrollment.hours_watched) }} h</li>
+          <li><strong>Tests score:</strong> {{ "%.1f"|format(enrollment.tests_score) }}%</li>
+          <li><strong>Lectures:</strong> {{ watched_lectures }}/{{ total_lectures }} ({{ remaining_lectures }} left)</li>
+        </ul>
+
+        <form method="post" class="course-form">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="hours_watched">Total hours watched</label>
+              <input id="hours_watched" name="hours_watched" type="number" step="0.1"
+                     value="{{ "%.1f"|format(enrollment.hours_watched) }}">
+            </div>
+            <div class="form-group">
+              <label for="tests_score">Tests score (%)</label>
+              <input id="tests_score" name="tests_score" type="number" step="0.1" min="0" max="100"
+                     value="{{ "%.1f"|format(enrollment.tests_score) }}">
+            </div>
+          </div>
+          <div class="course-form-actions">
+            <button type="submit" class="btn primary-btn">Save details</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="student-chart-card">
+        <h2>Daily hours for this course (last 14 days)</h2>
+        <canvas id="courseDailyChart"></canvas>
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}

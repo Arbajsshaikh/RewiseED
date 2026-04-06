@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+{% block title %}Trainer Dashboard - Academic{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item active">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item">
+        <span class="nav-icon">📚</span>
+        <span>Courses</span>
+      </a>
+      <a href="{{ url_for('trainer_students') }}" class="nav-item">
+        <span class="nav-icon">👨‍🎓</span>
+        <span>Students</span>
+      </a>
+      <a href="{{ url_for('trainer_insights') }}" class="nav-item{% if request.endpoint == 'trainer_insights' %} active{% endif %}">
+  <span class="nav-icon">📊</span><span>Insights</span>
+</a>
+
+      <a href="{{ url_for('trainer_assessments_overview') }}" class="nav-item">
+        <span class="nav-icon">🧪</span>
+        <span>Assessments</span>
+      </a>
+      <a href="{{ url_for('trainer_resources') }}" class="nav-item">
+        <span class="nav-icon">📂</span>
+        <span>Resources</span>
+      </a>
+      <a href="{{ url_for('trainer_events') }}" class="nav-item">
+        <span class="nav-icon">📅</span>
+        <span>Events</span>
+      </a>
+
+
+
+
+
+
+
+      <a href="{{ url_for('trainer_community') }}" class="nav-item">
+        <span class="nav-icon">💬</span>
+        <span>Community</span>
+      </a>
+     <a href="{{ url_for('trainer_question_bank') }}" class="nav-item">
+  <span class="nav-icon">🧠</span><span>Question bank</span>
+</a>
+<a href="{{ url_for('trainer_groups') }}" class="nav-item">
+  <span class="nav-icon">👥</span><span>Groups</span>
+</a>
+<a href="{{ url_for('trainer_certificate_issue') }}" class="nav-item">
+  <span class="nav-icon">🎓</span>
+  <span>Certificates</span>
+</a>
+
+
+
+<a href="{{ url_for('trainer_automations') }}" class="nav-item">
+  <span class="nav-icon">⚡</span><span>Automations</span>
+</a>
+
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('trainer_settings') }}" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span>Settings</span>
+      </a>
+      <a href="{{ url_for('trainer_help') }}" class="nav-item">
+        <span class="nav-icon">❓</span>
+        <span>Help Center</span>
+      </a>
+      <button class="dark-toggle" type="button">
+        <span>🌙</span>
+        <span>Dark Mode</span>
+      </button>
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span>
+        <span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">Welcome back, {{ user.name.split(' ')[0] }} 👋</h1>
+        <p class="welcome-subtitle">Here’s what’s happening with your courses today.</p>
+      </div>
+
+      <div class="header-right">
+        <!--<button class="icon-circle js-open-search" type="button">🔍</button>-->
+        <button class="icon-circle js-open-notifications" type="button">🔔</button>
+        <a href="{{ url_for('trainer_profile') }}" class="header-profile-link">
+  <div class="header-profile">
+    <div class="avatar small">
+      {{ user.name[0] }}{{ user.name.split(' ')[-1][0] }}
+    </div>
+    <div class="header-profile-text">
+      <span class="profile-name">{{ user.name }}</span>
+      <span class="profile-role">Trainer</span>
+    </div>
+  </div>
+</a>
+
+      </div>
+    </header>
+
+    <!-- Stat cards -->
+    <section class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Courses</div>
+        <div class="stat-value">{{ total_courses }}</div>
+        <a href="{{ url_for('trainer_courses') }}" class="text-link">View details →</a>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Students</div>
+        <div class="stat-value">{{ total_students }}</div>
+        <a href="{{ url_for('trainer_students') }}" class="text-link">View details →</a>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Completed</div>
+        <div class="stat-value">{{ completed_count }}</div>
+        <a href="{{ url_for('trainer_students') }}" class="text-link">View details →</a>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">In Progress</div>
+        <div class="stat-value">{{ in_progress_count }}</div>
+        <a href="{{ url_for('trainer_students') }}" class="text-link">View details →</a>
+      </div>
+    </section>
+
+    <section class="content-grid">
+      <!-- Continue Teaching -->
+      <div class="panel wide">
+    <div class="panel-header">
+      <h2>Live Courses</h2>
+      <!-- No "See all" needed now, we show all courses here -->
+    </div>
+    <div class="table">
+      <div class="table-head">
+        <span>Course</span>
+        <span>Level · Duration</span>
+        <span>Students</span>
+        <span>Revenue</span>
+      </div>
+
+      {% for item in continue_courses %}
+      <div class="table-row">
+        <!-- Course info -->
+        <div class="course-info">
+          <div class="course-icon" style="background: {{ item.course.color }};"></div>
+          <div>
+            <!-- Clicking course name → course detail page (with students list) -->
+            <a href="{{ url_for('trainer_course_detail', course_id=item.course.id) }}"
+               class="course-title"
+               style="text-decoration: none;">
+              {{ item.course.title }}
+            </a>
+            <div class="course-meta">
+              {{ item.course.level }} · {{ item.course.duration_hours }} hours
+            </div>
+          </div>
+        </div>
+
+        <!-- Level · Duration (secondary, for larger screens) -->
+        <div class="cell-meta">
+          {{ item.course.level }} · {{ item.course.duration_hours }} hours
+        </div>
+
+        <!-- Students count (click → enrolled students list for this course) -->
+        <div class="cell-meta">
+          <a href="{{ url_for('trainer_course_detail', course_id=item.course.id) }}"
+             class="link">
+            {{ item.num_students }} student{{ '' if item.num_students == 1 else 's' }}
+          </a>
+        </div>
+
+        <!-- Total revenue (click → monthly revenue bar chart page) -->
+        <div class="status-cell">
+          {% if item.total_revenue > 0 %}
+          <a href="{{ url_for('trainer_course_revenue', course_id=item.course.id) }}"
+             class="link">
+            ₹ {{ '%.0f'|format(item.total_revenue) }}
+          </a>
+          {% else %}
+          <span class="course-meta">₹ 0</span>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+      <!-- Upcoming Sessions -->
+      <div class="panel side">
+        <div class="panel-header">
+          <h2>Upcoming Sessions</h2>
+        </div>
+        <ul class="session-list">
+          {% for s in upcoming_sessions %}
+          <li>
+            <a class="session-item"
+               href="{{ url_for('trainer_course_detail', course_id=s.course.id) }}">
+              <div class="session-main">
+                <div class="session-title">{{ s.title }}</div>
+                <div class="session-course">{{ s.course.title }}</div>
+              </div>
+              <div class="session-time">
+                {{ s.start_time.strftime('%b %d, %H:%M') }}
+              </div>
+            </a>
+          </li>
+          {% else %}
+          <li class="session-empty">No upcoming sessions.</li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Recommended -->
+      <div class="panel full">
+        <div class="panel-header">
+          <h2>Recommended for your students</h2>
+          <a href="{{ url_for('trainer_courses') }}" class="text-link">See all</a>
+        </div>
+        <div class="card-row">
+          {% for c in recommended_courses %}
+          <a href="{{ url_for('trainer_course_detail', course_id=c.id) }}"
+             class="course-card-lg-link">
+            <article class="course-card-lg">
+              <div class="card-banner" style="background: {{ c.color }};"></div>
+              <div class="card-body">
+                <h3 class="course-title">{{ c.title }}</h3>
+                <p class="course-description">
+                  Curated lessons and activities to keep learners engaged and progressing.
+                </p>
+                <div class="course-footer">
+                  <span>{{ c.level }}</span>
+                  <span>·</span>
+                  <span>{{ c.duration_hours }} hours</span>
+                </div>
+              </div>
+            </article>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}

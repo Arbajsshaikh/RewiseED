@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if mode == 'edit' else 'New' }} Event - Academic{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span><span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_events') }}" class="nav-item active">
+        <span class="nav-icon">📅</span><span>Events</span>
+      </a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">
+          {{ 'Edit event' if mode == 'edit' else 'Create new event' }}
+        </h1>
+      </div>
+    </header>
+
+    <section class="courses-table-panel">
+      <div class="panel">
+        <form method="post" class="form">
+          <div class="form-group">
+            <label for="title">Title</label>
+            <input id="title" name="title" type="text"
+                   value="{{ event.title if event else '' }}"
+                   placeholder="e.g. Live Q&A Session" required>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3"
+                      placeholder="What is this event about?">{{ event.description if event else '' }}</textarea>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="type">Type</label>
+              <select id="type" name="type">
+                {% set t = event.type if event else 'Live Class' %}
+                <option value="Live Class"  {% if t == 'Live Class'  %}selected{% endif %}>Live Class</option>
+                <option value="Q&A"         {% if t == 'Q&A'         %}selected{% endif %}>Q&A</option>
+                <option value="Deadline"    {% if t == 'Deadline'    %}selected{% endif %}>Deadline</option>
+                <option value="Exam"        {% if t == 'Exam'        %}selected{% endif %}>Exam</option>
+                <option value="Meeting"     {% if t == 'Meeting'     %}selected{% endif %}>Meeting</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="course_id">Course (optional)</label>
+              <select id="course_id" name="course_id">
+                <option value="">General / All courses</option>
+                {% for c in courses %}
+                <option value="{{ c.id }}"
+                        {% if event and event.course_id == c.id %}selected{% endif %}>
+                  {{ c.title }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="start_time">Start time</label>
+              <input id="start_time" name="start_time" type="datetime-local"
+                     value="{{ start_value if mode == 'edit' else '' }}" required>
+            </div>
+            <div class="form-group">
+              <label for="end_time">End time (optional)</label>
+              <input id="end_time" name="end_time" type="datetime-local"
+                     value="{{ end_value if mode == 'edit' else '' }}">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="meeting_link">Meeting link (for online events)</label>
+            <input id="meeting_link" name="meeting_link" type="url"
+                   value="{{ event.meeting_link if event else '' }}"
+                   placeholder="https://meet.google.com/...">
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="location">Location (for offline events)</label>
+              <input id="location" name="location" type="text"
+                     value="{{ event.location if event else '' }}"
+                     placeholder="e.g. Classroom 202 / Lab">
+            </div>
+            <div class="form-group">
+              <label for="color">Event color</label>
+              <input id="color" name="color" type="color"
+                     value="{{ event.color if event else '#0f766e' }}">
+            </div>
+          </div>
+
+          <label class="checkbox" style="margin-top: 6px;">
+            <input type="checkbox" name="is_online"
+                   {% if not event or event.is_online %}checked{% endif %}>
+            <span>Online event (has meeting link)</span>
+          </label>
+
+          <div class="course-form-actions" style="margin-top: 20px;">
+            <a href="{{ url_for('trainer_events') }}" class="btn btn-ghost">Cancel</a>
+            <button type="submit" class="btn primary-btn">
+              {{ 'Save changes' if mode == 'edit' else 'Create event' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}

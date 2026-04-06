@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Templates - Trainer{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/templates.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/templates.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <div class="panel-header">
+    <h2>Templates</h2>
+    <div class="panel-actions">
+      <a href="{{ url_for('trainer_template_new') }}" class="btn primary-btn">+ New Template</a>
+    </div>
+  </div>
+
+  <div class="templates-grid">
+    {% if templates %}
+      {% for t in templates %}
+      <article class="template-card">
+        <div class="template-card-body">
+          <h3>{{ t.title }}</h3>
+          <p class="muted">{{ t.description or "—" }}</p>
+          <div class="meta">
+            <span>{{ t.category }}</span>
+            <span>·</span>
+            <span>Last: {{ t.updated_at.strftime('%Y-%m-%d') }}</span>
+          </div>
+        </div>
+        <div class="template-card-actions">
+          <a href="{{ url_for('trainer_template_edit', template_id=t.id) }}" class="btn-sm">Edit</a>
+
+          <form method="post" action="{{ url_for('trainer_template_clone', template_id=t.id) }}" style="display:inline;">
+            <button type="submit" class="btn-sm">Clone</button>
+          </form>
+
+          <a href="{{ url_for('trainer_template_preview', template_id=t.id) }}" class="btn-sm">Preview</a>
+
+          <form method="post" action="{{ url_for('trainer_template_delete', template_id=t.id) }}" style="display:inline;" onsubmit="return confirm('Delete template?');">
+            <button type="submit" class="btn-sm btn-danger">Delete</button>
+          </form>
+
+          <form method="post" action="{{ url_for('trainer_template_generate_ai', template_id=t.id) }}" style="display:inline;">
+            <input name="seed" placeholder="AI seed (optional)" />
+            <button type="submit" class="btn-sm btn-ghost">AI Generate</button>
+          </form>
+        </div>
+      </article>
+      {% endfor %}
+    {% else %}
+      <div class="empty">No templates yet. Create one.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

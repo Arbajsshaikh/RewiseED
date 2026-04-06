@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+{% block title %}RewiseED - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <!-- Sidebar (reuse same as other pages) -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">A</div>
+        <span class="brand-name">Academic</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span><span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item active">
+        <span class="nav-icon">📚</span><span>Courses</span>
+      </a>
+      <a href="{{ url_for('trainer_students') }}" class="nav-item">
+        <span class="nav-icon">👨‍🎓</span><span>Students</span>
+      </a>
+      <a href="{{ url_for('trainer_assessments_overview') }}" class="nav-item">
+        <span class="nav-icon">🧪</span><span>Assessments</span>
+      </a>
+      <a href="{{ url_for('trainer_resources') }}" class="nav-item">
+        <span class="nav-icon">📂</span><span>Resources</span>
+      </a>
+      <a href="{{ url_for('trainer_events') }}" class="nav-item">
+        <span class="nav-icon">📅</span><span>Events</span>
+      </a>
+      <a href="{{ url_for('trainer_community') }}" class="nav-item">
+        <span class="nav-icon">💬</span><span>Community</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('trainer_profile') }}" class="nav-item">
+        <span class="nav-icon">👤</span><span>Profile</span>
+      </a>
+      <a href="{{ url_for('trainer_settings') }}" class="nav-item">
+        <span class="nav-icon">⚙️</span><span>Settings</span>
+      </a>
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span><span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">RewiseED for {{ course.title }}</h1>
+        <p class="welcome-subtitle">
+          AI bundle: summaries, quizzes, exams, PPTs, projects & virtual tutor.
+        </p>
+      </div>
+      <div class="header-right">
+        <div class="price-pill">
+          <span class="pill-label">RewiseED package</span>
+          <span class="pill-price">₹ {{ "%.0f"|format(pkg.price) }}</span>
+        </div>
+
+        {% if not pkg.is_paid %}
+        <form method="post"
+              action="{{ url_for('trainer_course_rewiseed_mark_paid', course_id=course.id) }}">
+          <button type="submit" class="btn primary-btn">
+            Mark as paid (dev)
+          </button>
+        </form>
+        {% else %}
+        <span class="badge success">Paid</span>
+        {% endif %}
+      </div>
+    </header>
+
+    <section class="rewiseed-horizontal">
+
+  <!-- AI SUMMARY -->
+<div class="rewiseed-card">
+  <h3>📘 AI Summary</h3>
+
+  <div class="content">
+    {% if videos %}
+      {% for v in videos %}
+        {% if v.summary %}
+          <div class="project-card">
+            <strong>🎥 {{ v.title }}</strong>
+            <p>{{ v.summary }}</p>
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <p>No video summaries available.</p>
+    {% endif %}
+  </div>
+
+  <div class="actions">
+    <button class="rewise-btn secondary">Overview</button>
+  </div>
+
+  <button class="download-btn"
+    onclick="downloadTextFile(
+      'AI_Course_Summary.txt',
+      `{% for v in videos %}{% if v.summary %}{{ v.title }}:\n{{ v.summary }}\n\n{% endif %}{% endfor %}`
+    )">
+    ⬇ Download Summary
+  </button>
+</div>
+
+
+  <!-- AI QUIZ -->
+  <div class="rewiseed-card">
+    <h3>📝 AI Quiz</h3>
+    <div class="content">
+      <pre>{{ pkg.quiz_content }}</pre>
+    </div>
+    <div class="actions">
+      <button class="rewise-btn">Practice</button>
+    </div>
+    <button class="download-btn"
+  onclick="downloadTextFile(
+    'AI_Quiz.txt',
+    `{{ pkg.quiz_content|escape }}`
+  )">
+  ⬇ Download Quiz
+</button>
+
+  </div>
+
+  <!-- AI EXAM -->
+  <div class="rewiseed-card">
+    <h3>📕 AI Exam</h3>
+    <div class="content">
+      <pre>{{ pkg.exam_content }}</pre>
+    </div>
+    <div class="actions">
+      <button class="rewise-btn">Assessment</button>
+    </div>
+    <button class="download-btn"
+  onclick="downloadTextFile(
+    'AI_Exam.txt',
+    `{{ pkg.exam_content|escape }}`
+  )">
+  ⬇ Download Exam
+</button>
+
+  </div>
+
+  <!-- AI PPT -->
+  <div class="rewiseed-card">
+    <h3>📊 AI PPT</h3>
+    <div class="content">
+      <pre>{{ pkg.ppt_outline }}</pre>
+    </div>
+    <div class="actions">
+      <button class="rewise-btn secondary">Slides</button>
+    </div>
+    <button class="download-btn"
+  onclick="downloadTextFile(
+    'AI_PPT_Outline.txt',
+    `{{ pkg.ppt_outline|escape }}`
+  )">
+  ⬇ Download PPT Outline
+</button>
+
+  </div>
+
+  <!-- AI PROJECTS -->
+  <div class="rewiseed-card">
+    <h3>🚀 Projects</h3>
+    <div class="content">
+      <pre>{{ pkg.project_ideas }}</pre>
+    </div>
+    <div class="actions">
+      <button class="rewise-btn secondary">Hands-on</button>
+    </div>
+    <button class="download-btn"
+  onclick="downloadTextFile(
+    'AI_Project_Ideas.txt',
+    `{{ pkg.project_ideas|escape }}`
+  )">
+  ⬇ Download Projects
+</button>
+
+  </div>
+
+  <!-- AI CHATBOT -->
+  <div class="rewiseed-card">
+    <h3>🤖 Chatbot</h3>
+    <div class="content">
+      <pre>{{ pkg.chatbot_prompt }}</pre>
+    </div>
+    <div class="actions">
+      <button class="rewise-btn">Ask</button>
+    </div>
+    <button class="download-btn"
+  onclick="downloadTextFile(
+    'AI_Chatbot_Prompt.txt',
+    `{{ pkg.chatbot_prompt|escape }}`
+  )">
+  ⬇ Download Chatbot Prompt
+</button>
+
+  </div>
+
+  <!-- AI TUTOR -->
+<div class="rewiseed-card">
+  <h3>🧑‍🏫 Virtual Tutor</h3>
+
+  <div class="content">
+    <pre id="tutorScript">{{ pkg.tutor_script }}</pre>
+  </div>
+
+  <div class="actions">
+    <button class="rewise-btn" onclick="startTutor()">
+      ▶ Start Tutor
+    </button>
+
+    <button class="download-btn"
+      onclick="downloadTextFile(
+        'AI_Virtual_Tutor_Script.txt',
+        document.getElementById('tutorScript').innerText
+      )">
+      ⬇ Download Tutor Script
+    </button>
+  </div>
+</div>
+<script>
+function downloadTextFile(filename, text) {
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+function startTutor() {
+  alert("Tutor started! (Connect AI / TTS / step engine here)");
+}
+</script>
+
+
+  </div>
+
+</section>
+
+  </main>
+</div>
+{% endblock %}
+<script>
+function downloadTextFile(filename, content) {
+  if (!content || content.trim() === "") {
+    alert("Nothing to download.");
+    return;
+  }
+
+  const blob = new Blob([content], { type: "text/plain;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+</script>

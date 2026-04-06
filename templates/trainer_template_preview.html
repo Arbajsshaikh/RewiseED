@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Preview - {{ tpl.title }}{% endblock %}
+
+{% block content %}
+<div class="panel">
+  <div class="panel-header">
+    <h2>Preview: {{ tpl.title }}</h2>
+    <div class="panel-actions">
+      <a href="{{ url_for('trainer_template_edit', template_id=tpl.id) }}" class="btn-sm">Edit</a>
+      <a href="{{ url_for('trainer_templates') }}" class="btn-sm">Back</a>
+    </div>
+  </div>
+
+  <div class="preview-grid">
+    <section class="preview-rendered">
+      <h3>Rendered output</h3>
+      <div class="render-card">
+        <pre style="white-space:pre-wrap;">{{ rendered }}</pre>
+      </div>
+    </section>
+
+    <aside class="preview-context">
+      <h3>Context (JSON)</h3>
+      <pre>{{ context|tojson(indent=2) }}</pre>
+      <form method="post">
+        <label>Edit context JSON and preview</label>
+        <textarea name="context_json" rows="10">{{ context|tojson(indent=2) }}</textarea>
+        <div class="form-actions">
+          <button type="submit" class="btn primary-btn">Preview</button>
+        </div>
+      </form>
+    </aside>
+  </div>
+</div>
+{% endblock %}

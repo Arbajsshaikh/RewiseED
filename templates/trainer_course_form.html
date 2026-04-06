@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}{{ 'New Course' if mode == 'new' else 'Edit Course' }} - Trainer{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/courses.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <!-- Reuse sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item active">
+        <span class="nav-icon">📚</span>
+        <span>Courses</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span>
+        <span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">
+          {{ 'Create new course' if mode == 'new' else 'Edit course' }}
+        </h1>
+        <p class="welcome-subtitle">
+          {{ 'Set up a new course with basic details.' if mode == 'new' else 'Update the course information.' }}
+        </p>
+      </div>
+    </header>
+
+    <section class="course-form-panel">
+      <form method="post" class="course-form">
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="title">Course title</label>
+            <input id="title" name="title" type="text"
+                   value="{{ course.title if mode == 'edit' else '' }}"
+                   placeholder="e.g. Design Accessibility" required>
+          </div>
+          <div class="form-group">
+            <label for="level">Level</label>
+            <select id="level" name="level">
+              {% set lvl = course.level if mode == 'edit' else 'Beginner' %}
+              <option value="Beginner" {{ 'selected' if lvl=='Beginner' else '' }}>Beginner</option>
+              <option value="Intermediate" {{ 'selected' if lvl=='Intermediate' else '' }}>Intermediate</option>
+              <option value="Advanced" {{ 'selected' if lvl=='Advanced' else '' }}>Advanced</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="duration_hours">Duration (hours)</label>
+            <input id="duration_hours" name="duration_hours" type="number" min="1" max="100"
+                   value="{{ course.duration_hours if mode == 'edit' else 6 }}" required>
+          </div>
+          <div class="form-group">
+            <label for="color">Card color (hex)</label>
+            <input id="color" name="color" type="text"
+                   value="{{ course.color if mode == 'edit' else '#0f766e' }}"
+                   placeholder="#0f766e">
+          </div>
+        </div>
+
+        <div class="course-form-actions">
+          <a href="{{ url_for('trainer_courses') }}" class="btn-sm btn-ghost">Cancel</a>
+          <button type="submit" class="btn primary-btn">
+            {{ 'Create course' if mode == 'new' else 'Save changes' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </main>
+</div>
+{% endblock %}

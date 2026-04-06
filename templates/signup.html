@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Sign Up - Academic{% endblock %}
+
+{% block content %}
+<div class="page-wrapper auth">
+  <div class="auth-card">
+    <div class="auth-left">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+
+      <div class="auth-main">
+        <h1 class="auth-title">Create your account</h1>
+        <p class="auth-subtitle">Join as a student or trainer</p>
+
+        <form method="post" class="form">
+
+          <div class="form-group">
+            <label>Sign up as</label>
+            <div class="role-switch">
+              <input type="radio" id="signup-student" name="role" value="student" checked>
+              <label for="signup-student" class="switch-option">Student</label>
+
+              <input type="radio" id="signup-trainer" name="role" value="trainer">
+              <label for="signup-trainer" class="switch-option">Trainer</label>
+
+              <span class="switch-slider"></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="name">Full name</label>
+            <input id="name" name="name" type="text" placeholder="John Doe" required>
+          </div>
+
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" placeholder="you@example.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" placeholder="Create password" required>
+          </div>
+
+          <div class="form-group">
+            <label for="confirm_password">Confirm password</label>
+            <input id="confirm_password" name="confirm_password" type="password" placeholder="Repeat password" required>
+          </div>
+
+          <button type="submit" class="btn primary-btn full-width">Sign Up</button>
+        </form>
+
+        <p class="signup-text">
+          Already have an account?
+          <a class="link" href="{{ url_for('login') }}">Sign in</a>
+        </p>
+      </div>
+
+      <div class="auth-footer">
+        <span>© 2024 Academic</span>
+        <div class="footer-right">
+          <span>ENG</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-right">
+      <div class="hero-copy">
+        <h2>Start your learning journey</h2>
+        <p>
+          Access premium courses, track your progress, and grow faster.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

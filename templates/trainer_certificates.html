@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Certificates - Trainer{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  {% include "partials/sidebar_trainer.html" ignore missing %}
+<aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item">
+        <span class="nav-icon">📚</span>
+        <span>Courses</span>
+      </a>
+      <a href="{{ url_for('trainer_students') }}" class="nav-item">
+        <span class="nav-icon">👨‍🎓</span>
+        <span>Students</span>
+      </a>
+      <a href="{{ url_for('trainer_insights') }}" class="nav-item{% if request.endpoint == 'trainer_insights' %} active{% endif %}">
+  <span class="nav-icon">📊</span><span>Insights</span>
+</a>
+
+      <a href="{{ url_for('trainer_assessments_overview') }}" class="nav-item">
+        <span class="nav-icon">🧪</span>
+        <span>Assessments</span>
+      </a>
+      <a href="{{ url_for('trainer_resources') }}" class="nav-item">
+        <span class="nav-icon">📂</span>
+        <span>Resources</span>
+      </a>
+      <a href="{{ url_for('trainer_events') }}" class="nav-item">
+        <span class="nav-icon">📅</span>
+        <span>Events</span>
+      </a>
+      <a href="{{ url_for('trainer_community') }}" class="nav-item">
+        <span class="nav-icon">💬</span>
+        <span>Community</span>
+      </a>
+     <a href="{{ url_for('trainer_question_bank') }}" class="nav-item">
+  <span class="nav-icon">🧠</span><span>Question bank</span>
+</a>
+<a href="{{ url_for('trainer_groups') }}" class="nav-item">
+  <span class="nav-icon">👥</span><span>Groups</span>
+</a>
+<a href="{{ url_for('trainer_certificate_issue') }}" class="nav-item">
+  <span class="nav-icon">🎓</span>
+  <span>Certificates</span>
+</a>
+
+<a href="{{ url_for('trainer_automations') }}" class="nav-item">
+  <span class="nav-icon">⚡</span><span>Automations</span>
+</a>
+
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('trainer_settings') }}" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span>Settings</span>
+      </a>
+      <a href="{{ url_for('trainer_help') }}" class="nav-item">
+        <span class="nav-icon">❓</span>
+        <span>Help Center</span>
+      </a>
+      <button class="dark-toggle" type="button">
+        <span>🌙</span>
+        <span>Dark Mode</span>
+      </button>
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span>
+        <span>Logout</span>
+      </a>
+    </div>
+  </aside>
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">Certificate templates</h1>
+        <p class="welcome-subtitle">Design completion certificates for your students.</p>
+      </div>
+      <div class="header-right">
+        <a href="{{ url_for('trainer_certificate_new') }}" class="btn primary-btn">+ New template</a>
+      </div>
+    </header>
+
+    <section class="panel full">
+      {% if templates %}
+      <div class="cards-grid">
+        {% for t in templates %}
+        <article class="cert-card-preview">
+          <div class="cert-card-header">
+            <h2>{{ t.name }}</h2>
+            {% if t.is_default %}
+            <span class="badge success">Default</span>
+            {% endif %}
+          </div>
+          <div class="cert-card-body">
+            <p>HTML template with placeholders:</p>
+            <code>{{ '{{ student_name }}' }}, {{ '{{ course_title }}' }}, {{ '{{ date }}' }}</code>
+          </div>
+          <div class="cert-card-footer">
+            <a href="{{ url_for('trainer_certificate_edit', template_id=t.id) }}" class="btn-sm btn-ghost">
+              Edit
+            </a>
+            {% if not t.is_default %}
+            <form method="post"
+                  action="{{ url_for('trainer_certificate_delete', template_id=t.id) }}"
+                  class="inline-form">
+              <button type="submit" class="btn-sm btn-danger"
+                      onclick="return confirm('Delete this template?');">
+                Delete
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <p>No templates yet. A default template will be created automatically.</p>
+      </div>
+      {% endif %}
+    </section>
+  </main>
+</div>
+{% endblock %}

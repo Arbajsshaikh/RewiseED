@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}AI Tutor – {{ course.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ai_tutor.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/ai_tutor.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <!-- Sidebar (student version – adjust links as needed) -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">A</div>
+        <span class="brand-name">Academic</span>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('student_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span><span>Home</span>
+      </a>
+      <a href="#" class="nav-item active">
+        <span class="nav-icon">🤖</span><span>AI Tutor</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span><span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">AI Tutor for {{ course.title }}</h1>
+        <p class="welcome-subtitle">
+          Ask questions about this course. The tutor uses your RewiseED AI content when available.
+        </p>
+      </div>
+    </header>
+
+    <section class="ai-tutor-layout">
+      <div class="ai-tutor-sidebar">
+        <div class="course-pill">
+          <div class="course-pill-title">{{ course.title }}</div>
+          <div class="course-pill-meta">
+            {{ course.level }} · {{ course.duration_hours }} hours
+          </div>
+        </div>
+
+        {% if pkg and pkg.summary %}
+        <div class="ai-tutor-context">
+          <h3>Course AI summary</h3>
+          <p class="context-text">{{ pkg.summary }}</p>
+        </div>
+        {% elif base_prompt %}
+        <div class="ai-tutor-context">
+          <h3>How this tutor works</h3>
+          <p class="context-text">{{ base_prompt }}</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="ai-tutor-chat-panel">
+        <div id="chatWindow" class="chat-window">
+          {% if history and history|length > 0 %}
+            {% for turn in history %}
+              {% if turn.role == 'user' %}
+                <div class="chat-bubble user">
+                  <div class="bubble-content">{{ turn.content }}</div>
+                </div>
+              {% else %}
+                <div class="chat-bubble assistant">
+                  <div class="bubble-header">AI Tutor</div>
+                  <div class="bubble-content">{{ turn.content }}</div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            <div class="chat-empty-state">
+              <h3>Start a conversation</h3>
+              <p>Ask anything about this course: topics, examples, revisions, or exam-style questions.</p>
+            </div>
+          {% endif %}
+        </div>
+
+        <form id="aiTutorForm" class="chat-input-row"
+              data-chat-url="{{ url_for('student_course_tutor_chat', course_id=course.id) }}">
+          <textarea id="chatMessage"
+                    name="message"
+                    rows="1"
+                    placeholder="Ask a question about this course..."></textarea>
+          <button type="submit" class="btn primary-btn chat-send-btn">
+            Send
+          </button>
+        </form>
+      </div>
+    </section>
+  </main>
+</div>
+{% endblock %}

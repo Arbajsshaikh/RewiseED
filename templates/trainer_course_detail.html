@@ -1,0 +1,538 @@
+{% extends "base.html" %}
+{% block title %}{{ course.title }} - Course Content{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/courses.css') }}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/courses.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <!-- Sidebar (same style as other pages) -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item active">
+        <span class="nav-icon">📚</span>
+        <span>Courses</span>
+      </a>
+      <a href="{{ url_for('trainer_students') }}" class="nav-item">
+
+        <span class="nav-icon">👨‍🎓</span>
+        <span>Students</span>
+      </a>
+      <a href="{{ url_for('trainer_assessments_overview') }}" class="nav-item">
+  <span class="nav-icon">🧪</span>
+  <span>Assessments</span>
+</a>
+
+      <a href="#" class="nav-item">
+        <span class="nav-icon">📂</span>
+        <span>Resources</span>
+      </a>
+      <a href="#" class="nav-item">
+        <span class="nav-icon">📅</span>
+        <span>Events</span>
+      </a>
+      <a href="{{ url_for('trainer_profile') }}" class="nav-item active">
+  <span class="nav-icon">👤</span>
+  <span>Profile</span>
+</a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="#" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span>Settings</span>
+      </a>
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span>
+        <span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+    <header class="main-header">
+  <div>
+    <h1 class="welcome-title">{{ course.title }}</h1>
+    <p class="welcome-subtitle">
+      {{ course.level }} · {{ course.duration_hours }} hours
+    </p>
+  </div>
+  <div class="header-right">
+    <a href="{{ url_for('trainer_course_assessments', course_id=course.id) }}" class="btn-sm btn-ghost" style="margin-right: 8px;">
+      🧪 Manage assessments
+    </a>
+    <!-- NEW: AI lesson plan button -->
+  <form method="post"
+        action="{{ url_for('trainer_course_ai_plan', course_id=course.id) }}"
+        class="inline-form"
+        style="margin-right: 8px;">
+    <button type="submit" class="btn-sm btn-ghost">✨ AI lesson plan</button>
+  </form>
+    <a href="{{ url_for('trainer_course_edit', course_id=course.id) }}" class="btn primary-btn">
+      Edit course info
+    </a>
+  </div>
+</header>
+
+
+    <section class="course-detail-grid">
+      <!-- Left: course meta -->
+      <div class="course-info-card">
+        <h2>Course details</h2>
+        <ul class="course-meta-list">
+  <li><strong>Title:</strong> {{ course.title }}</li>
+  <li><strong>Level:</strong> {{ course.level }}</li>
+  <li><strong>Duration:</strong> {{ course.duration_hours }} hours</li>
+  <li>
+    <strong>Price:</strong>
+    ₹ {{ "%.0f"|format(course.price) }}
+  </li>
+</ul>
+
+      </div>
+
+      <!-- Right: videos -->
+      <div class="course-videos-card">
+        <div class="panel-header">
+          <h2>Video lectures</h2>
+        </div>
+
+        <!-- Upload form -->
+        <form method="post"
+              action="{{ url_for('trainer_video_upload', course_id=course.id) }}"
+              enctype="multipart/form-data"
+              class="video-upload-form">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="title">Video title (optional)</label>
+              <input id="title" name="title" type="text"
+                     placeholder="e.g. Introduction to the course">
+            </div>
+            <div class="form-group">
+              <label for="video_file">Video file</label>
+              <input id="video_file" name="video_file" type="file" accept="video/*" required>
+            </div>
+          </div>
+          <div class="course-form-actions">
+            <button type="submit" class="btn primary-btn">Upload video</button>
+          </div>
+        </form>
+                <!-- Upload other resources: PDFs, images, PPTs, audio, etc -->
+        <form method="post"
+              action="{{ url_for('trainer_asset_upload', course_id=course.id) }}"
+              enctype="multipart/form-data"
+              class="resource-upload-form">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="asset_file">Upload additional material</label>
+              <input id="asset_file" name="asset_file" type="file"
+                     accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.ppt,.pptx,.doc,.docx,.mp3,.wav,.m4a,.aac">
+            </div>
+          </div>
+          <div class="course-form-actions">
+            <button type="submit" class="btn btn-ghost">Upload resource</button>
+          </div>
+        </form>
+
+        <!-- Video list -->
+        {% if videos %}
+        <table class="courses-table video-table" id="videosTable">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Preview</th>
+              <th>Uploaded at</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for v in videos %}
+            <tr>
+              <td>
+                <form method="post"
+                      action="{{ url_for('trainer_video_rename', video_id=v.id) }}"
+                      class="inline-form rename-video-form">
+                  <input type="text" name="title" value="{{ v.title }}" class="rename-input">
+                  <button type="submit" class="btn-sm btn-ghost">Rename</button>
+                </form>
+              </td>
+              <td>
+                <video class="video-thumb" controls preload="metadata">
+                  <source src="{{ url_for('static', filename='uploads/videos/' ~ v.filename) }}" type="video/mp4">
+                  Your browser does not support the video tag.
+                </video>
+              </td>
+              <td>{{ v.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</td>
+              <td class="actions-col">
+
+  <!-- ⭐ NEW BUTTON ⭐ -->
+  <form method="post"
+        action="{{ url_for('trainer_video_generate_summary', video_id=v.id) }}"
+        class="inline-form"
+        style="margin-bottom:6px;">
+    <button type="submit" class="btn-sm btn-ghost">Generate AI Summary</button>
+  </form>
+
+  <!-- Existing delete button -->
+  <form method="post"
+        action="{{ url_for('trainer_video_delete', video_id=v.id) }}"
+        class="inline-form delete-video-form">
+    <button type="submit" class="btn-sm btn-danger">Delete</button>
+  </form>
+
+</td>
+
+            </tr>
+            <div class="ai-summary-box">
+  <h4>AI Summary of Lecture</h4>
+  <p>{{ v.summary }}</p>
+</div>
+
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+          <p>No videos uploaded yet for this course.</p>
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
+
+    {% if course.ai_outline_json %}
+{% set outline = course.ai_outline_json | loads %}
+<section class="ai-outline-panel">
+  <h2>AI lesson plan</h2>
+  {% if outline.modules %}
+    <div class="ai-modules-grid">
+      {% for m in outline.modules %}
+      <article class="ai-module-card">
+        <h3>{{ m.title }}</h3>
+        {% if m.outcomes %}
+        <h4>Outcomes</h4>
+        <ul>
+          {% for o in m.outcomes %}
+          <li>{{ o }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        {% if m.suggested_assessments %}
+        <h4>Suggested assessments</h4>
+        <ul>
+          {% for s in m.suggested_assessments %}
+          <li>{{ s }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <pre class="ai-raw-json">{{ outline.raw }}</pre>
+  {% endif %}
+</section>
+{% endif %}
+
+        <!-- Dynamic resource tiles -->
+    <section class="resource-grid">
+
+      {% if videos %}
+      <div class="resource-card">
+        <div class="resource-card-header">
+          <h2>Video lectures</h2>
+        </div>
+        <ul class="resource-list">
+          {% for v in videos %}
+          <li class="resource-item">
+            <div class="resource-main">
+              <div class="resource-thumb video-thumb-small">
+                <video preload="metadata">
+                  <source src="{{ url_for('static', filename='uploads/videos/' ~ v.filename) }}" type="video/mp4">
+                </video>
+              </div>
+              <div class="resource-info">
+                <form method="post"
+                      action="{{ url_for('trainer_video_rename', video_id=v.id) }}"
+                      class="inline-form">
+                  <input type="text" name="title" value="{{ v.title }}" class="resource-title-input">
+                  <button type="submit" class="btn-sm btn-ghost">Rename</button>
+                </form>
+                <div class="resource-meta">
+                  <span>Uploaded: {{ v.uploaded_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="resource-actions">
+              <form method="post"
+                    action="{{ url_for('trainer_video_delete', video_id=v.id) }}"
+                    class="inline-form">
+                <button type="submit" class="btn-sm btn-danger">Delete</button>
+              </form>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if pdf_assets %}
+      <div class="resource-card">
+        <div class="resource-card-header">
+          <h2>PDFs</h2>
+        </div>
+        <ul class="resource-list">
+          {% for a in pdf_assets %}
+          <li class="resource-item">
+            <div class="resource-main">
+              <div class="resource-thumb icon-thumb">📄</div>
+              <div class="resource-info">
+                <form method="post"
+                      action="{{ url_for('trainer_asset_rename', asset_id=a.id) }}"
+                      class="inline-form">
+                  <input type="text" name="title" value="{{ a.title }}" class="resource-title-input">
+                  <button type="submit" class="btn-sm btn-ghost">Rename</button>
+                </form>
+                <div class="resource-meta">
+                  <a href="{{ url_for('static', filename='uploads/resources/' ~ a.filename) }}"
+                     target="_blank" class="link">Open</a>
+                  · {{ "%.1f"|format(a.size_bytes / (1024*1024)) }} MB
+                </div>
+              </div>
+            </div>
+            <div class="resource-actions">
+              <form method="post"
+                    action="{{ url_for('trainer_asset_delete', asset_id=a.id) }}"
+                    class="inline-form">
+                <button type="submit" class="btn-sm btn-danger">Delete</button>
+              </form>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if image_assets %}
+      <div class="resource-card">
+        <div class="resource-card-header">
+          <h2>Images</h2>
+        </div>
+        <ul class="resource-list">
+          {% for a in image_assets %}
+          <li class="resource-item">
+            <div class="resource-main">
+              <div class="resource-thumb">
+                <img src="{{ url_for('static', filename='uploads/resources/' ~ a.filename) }}"
+                     alt="{{ a.title }}">
+              </div>
+              <div class="resource-info">
+                <form method="post"
+                      action="{{ url_for('trainer_asset_rename', asset_id=a.id) }}"
+                      class="inline-form">
+                  <input type="text" name="title" value="{{ a.title }}" class="resource-title-input">
+                  <button type="submit" class="btn-sm btn-ghost">Rename</button>
+                </form>
+                <div class="resource-meta">
+                  {{ "%.1f"|format(a.size_bytes / (1024*1024)) }} MB
+                </div>
+              </div>
+            </div>
+            <div class="resource-actions">
+              <form method="post"
+                    action="{{ url_for('trainer_asset_delete', asset_id=a.id) }}"
+                    class="inline-form">
+                <button type="submit" class="btn-sm btn-danger">Delete</button>
+              </form>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if ppt_assets %}
+      <div class="resource-card">
+        <div class="resource-card-header">
+          <h2>Presentations</h2>
+        </div>
+        <ul class="resource-list">
+          {% for a in ppt_assets %}
+          <li class="resource-item">
+            <div class="resource-main">
+              <div class="resource-thumb icon-thumb">📊</div>
+              <div class="resource-info">
+                <form method="post"
+                      action="{{ url_for('trainer_asset_rename', asset_id=a.id) }}"
+                      class="inline-form">
+                  <input type="text" name="title" value="{{ a.title }}" class="resource-title-input">
+                  <button type="submit" class="btn-sm btn-ghost">Rename</button>
+                </form>
+                <div class="resource-meta">
+                  <a href="{{ url_for('static', filename='uploads/resources/' ~ a.filename) }}"
+                     target="_blank" class="link">Download</a>
+                  · {{ "%.1f"|format(a.size_bytes / (1024*1024)) }} MB
+                </div>
+              </div>
+            </div>
+            <div class="resource-actions">
+              <form method="post"
+                    action="{{ url_for('trainer_asset_delete', asset_id=a.id) }}"
+                    class="inline-form">
+                <button type="submit" class="btn-sm btn-danger">Delete</button>
+              </form>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if audio_assets %}
+      <div class="resource-card">
+        <div class="resource-card-header">
+          <h2>Audio</h2>
+        </div>
+        <ul class="resource-list">
+          {% for a in audio_assets %}
+          <li class="resource-item">
+            <div class="resource-main">
+              <div class="resource-thumb icon-thumb">🎧</div>
+              <div class="resource-info">
+                <form method="post"
+                      action="{{ url_for('trainer_asset_rename', asset_id=a.id) }}"
+                      class="inline-form">
+                  <input type="text" name="title" value="{{ a.title }}" class="resource-title-input">
+                  <button type="submit" class="btn-sm btn-ghost">Rename</button>
+                </form>
+                <div class="resource-meta">
+                  <audio controls preload="metadata" style="width: 150px;">
+                    <source src="{{ url_for('static', filename='uploads/resources/' ~ a.filename) }}">
+                  </audio>
+                </div>
+              </div>
+            </div>
+            <div class="resource-actions">
+              <form method="post"
+                    action="{{ url_for('trainer_asset_delete', asset_id=a.id) }}"
+                    class="inline-form">
+                <button type="submit" class="btn-sm btn-danger">Delete</button>
+              </form>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+      {% if doc_assets or other_assets %}
+      <div class="resource-card">
+        <div class="resource-card-header">
+          <h2>Other files</h2>
+        </div>
+        <ul class="resource-list">
+          {% for a in doc_assets + other_assets %}
+          <li class="resource-item">
+            <div class="resource-main">
+              <div class="resource-thumb icon-thumb">📁</div>
+              <div class="resource-info">
+                <form method="post"
+                      action="{{ url_for('trainer_asset_rename', asset_id=a.id) }}"
+                      class="inline-form">
+                  <input type="text" name="title" value="{{ a.title }}" class="resource-title-input">
+                  <button type="submit" class="btn-sm btn-ghost">Rename</button>
+                </form>
+                <div class="resource-meta">
+                  <a href="{{ url_for('static', filename='uploads/resources/' ~ a.filename) }}"
+                     target="_blank" class="link">Download</a>
+                  · {{ "%.1f"|format(a.size_bytes / (1024*1024)) }} MB
+                </div>
+              </div>
+            </div>
+            <div class="resource-actions">
+              <form method="post"
+                    action="{{ url_for('trainer_asset_delete', asset_id=a.id) }}"
+                    class="inline-form">
+                <button type="submit" class="btn-sm btn-danger">Delete</button>
+              </form>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+
+    </section>
+   <!-- 🔹 NEW: Enrolled students for this course -->
+    <section class="students-table-panel" style="margin-top: 24px;">
+      <h2>Enrolled students</h2>
+
+      {% if enrollments %}
+      <table class="courses-table">
+        <thead>
+          <tr>
+            <th>Student</th>
+            <th>Email</th>
+            <th>Progress</th>
+            <th>Hours watched</th>
+            <th>Tests score</th>
+            <th>Status</th>
+            <th>Enrolled at</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in enrollments %}
+          <tr>
+            <td>
+              <!-- Link to per-student-per-course detail -->
+              <a href="{{ url_for('trainer_student_course_detail',
+                                  student_id=e.student.id,
+                                  course_id=course.id) }}"
+                 class="course-link">
+                {{ e.student.name }}
+              </a>
+            </td>
+            <td>{{ e.student.email }}</td>
+            <td>
+              <div class="progress-cell">
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: {{ e.progress }}%;"></div>
+                </div>
+                <span class="progress-value">{{ e.progress }}%</span>
+              </div>
+            </td>
+            <td>{{ "%.1f"|format(e.hours_watched) }} h</td>
+            <td>{{ "%.1f"|format(e.tests_score) }}%</td>
+            <td>{{ e.status }}</td>
+            <td>{{ e.enrolled_at.strftime('%Y-%m-%d') }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <p>No students enrolled in this course yet.</p>
+      </div>
+      {% endif %}
+    </section>
+  </main>
+</div>
+{% endblock %}

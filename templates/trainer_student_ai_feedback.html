@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}AI Feedback - {{ student.name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">A</div>
+        <span class="brand-name">Academic</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span><span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item">
+        <span class="nav-icon">📚</span><span>Courses</span>
+      </a>
+      <a href="{{ url_for('trainer_students') }}" class="nav-item active">
+        <span class="nav-icon">👨‍🎓</span><span>Students</span>
+      </a>
+      <a href="{{ url_for('trainer_assessments_overview') }}" class="nav-item">
+        <span class="nav-icon">🧪</span><span>Assessments</span>
+      </a>
+      <a href="{{ url_for('trainer_insights') }}" class="nav-item">
+        <span class="nav-icon">📊</span><span>Insights</span>
+      </a>
+      <a href="{{ url_for('trainer_resources') }}" class="nav-item">
+        <span class="nav-icon">📂</span><span>Resources</span>
+      </a>
+      <a href="{{ url_for('trainer_events') }}" class="nav-item">
+        <span class="nav-icon">📅</span><span>Events</span>
+      </a>
+      <a href="{{ url_for('trainer_community') }}" class="nav-item">
+        <span class="nav-icon">💬</span><span>Community</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('trainer_settings') }}" class="nav-item">
+        <span class="nav-icon">⚙️</span><span>Settings</span>
+      </a>
+      <a href="{{ url_for('trainer_help') }}" class="nav-item">
+        <span class="nav-icon">❓</span><span>Help Center</span>
+      </a>
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span><span>Logout</span>
+      </a>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">AI feedback for {{ student.name }}</h1>
+        <p class="welcome-subtitle">
+          Generated based on this student's progress in your courses.
+        </p>
+      </div>
+      <div class="header-right">
+        <a href="{{ url_for('trainer_students') }}" class="btn-sm btn-ghost">← Back to students</a>
+        <a href="{{ url_for('trainer_student_detail', student_id=student.id) }}" class="btn-sm btn-ghost">
+          View analytics
+        </a>
+      </div>
+    </header>
+
+    <section class="panel full">
+      <div class="panel-header">
+        <h2>Enrolled courses</h2>
+      </div>
+      <table class="students-table">
+        <thead>
+          <tr>
+            <th>Course</th>
+            <th>Progress</th>
+            <th>Hours watched</th>
+            <th>Test score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in enrollments %}
+          <tr>
+            <td>{{ e.course.title }}</td>
+            <td>{{ e.progress }}%</td>
+            <td>{{ "%.1f"|format(e.hours_watched) }} h</td>
+            <td>{{ "%.1f"|format(e.tests_score) }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel full">
+      <div class="panel-header">
+        <h2>AI feedback for trainer</h2>
+      </div>
+      <article class="ai-feedback-card">
+        <pre class="ai-feedback-text">{{ ai_feedback }}</pre>
+      </article>
+    </section>
+  </main>
+</div>
+{% endblock %}

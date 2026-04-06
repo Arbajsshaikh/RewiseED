@@ -1,0 +1,5 @@
+Flask==2.3.2
+flask_sqlalchemy==3.1.1
+openai==2.21.0
+openai_whisper==20250625
+protobuf==4.25.3

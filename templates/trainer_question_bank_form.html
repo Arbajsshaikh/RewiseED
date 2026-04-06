@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}{{ 'New' if mode=='new' else 'Edit' }} Question - Question Bank{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+  {% include "partials/sidebar_trainer.html" ignore missing %}
+<aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-logo">R</div>
+        <span class="brand-name">RewiseED</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('trainer_dashboard') }}" class="nav-item">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+      </a>
+      <a href="{{ url_for('trainer_courses') }}" class="nav-item">
+        <span class="nav-icon">📚</span>
+        <span>Courses</span>
+      </a>
+      <a href="{{ url_for('trainer_students') }}" class="nav-item">
+        <span class="nav-icon">👨‍🎓</span>
+        <span>Students</span>
+      </a>
+      <a href="{{ url_for('trainer_insights') }}" class="nav-item{% if request.endpoint == 'trainer_insights' %} active{% endif %}">
+  <span class="nav-icon">📊</span><span>Insights</span>
+</a>
+
+      <a href="{{ url_for('trainer_assessments_overview') }}" class="nav-item">
+        <span class="nav-icon">🧪</span>
+        <span>Assessments</span>
+      </a>
+      <a href="{{ url_for('trainer_resources') }}" class="nav-item">
+        <span class="nav-icon">📂</span>
+        <span>Resources</span>
+      </a>
+      <a href="{{ url_for('trainer_events') }}" class="nav-item">
+        <span class="nav-icon">📅</span>
+        <span>Events</span>
+      </a>
+      <a href="{{ url_for('trainer_community') }}" class="nav-item">
+        <span class="nav-icon">💬</span>
+        <span>Community</span>
+      </a>
+     <a href="{{ url_for('trainer_question_bank') }}" class="nav-item active">
+  <span class="nav-icon">🧠</span><span>Question bank</span>
+</a>
+<a href="{{ url_for('trainer_groups') }}" class="nav-item">
+  <span class="nav-icon">👥</span><span>Groups</span>
+</a>
+<a href="{{ url_for('trainer_certificates') }}" class="nav-item">
+  <span class="nav-icon">🎓</span><span>Certificates</span>
+</a>
+
+<a href="{{ url_for('trainer_automations') }}" class="nav-item">
+  <span class="nav-icon">⚡</span><span>Automations</span>
+</a>
+
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('trainer_settings') }}" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span>Settings</span>
+      </a>
+      <a href="{{ url_for('trainer_help') }}" class="nav-item">
+        <span class="nav-icon">❓</span>
+        <span>Help Center</span>
+      </a>
+      <button class="dark-toggle" type="button">
+        <span>🌙</span>
+        <span>Dark Mode</span>
+      </button>
+      <a href="{{ url_for('logout') }}" class="nav-item logout">
+        <span class="nav-icon">⏏</span>
+        <span>Logout</span>
+      </a>
+    </div>
+  </aside>
+  <main class="main-content">
+    <header class="main-header">
+      <div>
+        <h1 class="welcome-title">
+          {{ 'Create new question' if mode=='new' else 'Edit question' }}
+        </h1>
+        <p class="welcome-subtitle">Save reusable questions for future assessments.</p>
+      </div>
+    </header>
+
+    <section class="panel full">
+      <form method="post" class="form grid-2">
+        <div class="form-group">
+          <label>Topic</label>
+          <input name="topic" type="text" required
+                 value="{{ item.topic if item else '' }}"
+                 placeholder="e.g. Linear regression basics">
+        </div>
+
+        <div class="form-group">
+          <label>Difficulty</label>
+          <select name="difficulty">
+            {% set diff = item.difficulty if item else 'Medium' %}
+            <option value="Easy"   {% if diff=='Easy' %}selected{% endif %}>Easy</option>
+            <option value="Medium" {% if diff=='Medium' %}selected{% endif %}>Medium</option>
+            <option value="Hard"   {% if diff=='Hard' %}selected{% endif %}>Hard</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Question type</label>
+          {% set qtype = item.question_type if item else 'MCQ' %}
+          <select name="question_type">
+            <option value="MCQ"  {% if qtype=='MCQ' %}selected{% endif %}>Multiple choice</option>
+            <option value="Text" {% if qtype=='Text' %}selected{% endif %}>Short answer</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Attach to course (optional)</label>
+          <select name="course_id">
+            <option value="">None</option>
+            {% for c in courses %}
+            <option value="{{ c.id }}"
+              {% if item and item.course_id==c.id %}selected{% endif %}>
+              {{ c.title }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label>Question text</label>
+          <textarea name="text" rows="4" required
+                    placeholder="Write the question here...">{{ item.text if item else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Option A</label>
+          <input name="option_a" type="text"
+                 value="{{ item.option_a if item else '' }}">
+        </div>
+        <div class="form-group">
+          <label>Option B</label>
+          <input name="option_b" type="text"
+                 value="{{ item.option_b if item else '' }}">
+        </div>
+        <div class="form-group">
+          <label>Option C</label>
+          <input name="option_c" type="text"
+                 value="{{ item.option_c if item else '' }}">
+        </div>
+        <div class="form-group">
+          <label>Option D</label>
+          <input name="option_d" type="text"
+                 value="{{ item.option_d if item else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Correct option (A/B/C/D)</label>
+          <input name="correct_option" type="text" maxlength="1"
+                 value="{{ item.correct_option if item else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label>Marks</label>
+          <input name="marks" type="number" step="0.5"
+                 value="{{ '%.1f'|format(item.marks) if item else '1' }}">
+        </div>
+
+        <div class="form-group full-width">
+          <label>Tags (comma separated)</label>
+          <input name="tags" type="text"
+                 placeholder="e.g. stats,regression,intro"
+                 value="{{ item.tags if item else '' }}">
+        </div>
+
+        <div class="course-form-actions full-width">
+          <a href="{{ url_for('trainer_question_bank') }}" class="btn-sm btn-ghost">Back</a>
+          <button type="submit" class="btn primary-btn">
+            {{ 'Save question' if mode=='new' else 'Update question' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </main>
+</div>
+{% endblock %}

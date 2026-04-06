@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="panel full">
+  <h2>Assessment Result</h2>
+
+  <p><strong>Score:</strong> {{ score }} / {{ total }}</p>
+
+  <a href="{{ url_for('student_dashboard') }}" class="btn-primary">
+    Back to Dashboard
+  </a>
+</div>
+
+{% endblock %}
