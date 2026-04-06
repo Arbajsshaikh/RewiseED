@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 import os
 from datetime import datetime, timedelta, date
 from collections import defaultdict
-from ai_utils import OPENAI_API_KEY, generate_quiz_from_text
+from ai_utils import  generate_quiz_from_text
 import json
 from openai import OpenAI
 from flask import request, jsonify, current_app
@@ -15,7 +15,7 @@ import google.generativeai as genai
 
 import os
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 
 
 from ai_utils import get_client
