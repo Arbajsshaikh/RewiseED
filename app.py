@@ -37,11 +37,16 @@ import os
 import tempfile
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
+import os
+
 app.config.update(
     SECRET_KEY=os.getenv("SECRET_KEY", "fallback-secret"),
-    SESSION_COOKIE_SECURE=True,
+
+    SESSION_COOKIE_SECURE=True,      # required for HTTPS
     SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="None"
+    SESSION_COOKIE_SAMESITE="None",  # VERY IMPORTANT
+
+    PERMANENT_SESSION_LIFETIME=86400
 )
 
 
@@ -646,7 +651,8 @@ def login():
             return redirect(url_for("login"))
 
         session["user_id"] = user.id
-        session.modified = True   # 🔥 ADD THIS
+        session.permanent = True      # 🔥 ADD THIS
+        session.modified = True       # 🔥 ADD THIS
         session["user_role"] = user.role
         session["user_name"] = user.name
         print("SESSION DATA:", dict(session))  
