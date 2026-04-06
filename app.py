@@ -11,7 +11,6 @@ import json
 from openai import OpenAI
 from flask import request, jsonify, current_app
 
-import google.generativeai as genai
 
 import os
 
