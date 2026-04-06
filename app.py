@@ -421,6 +421,8 @@ def login_required(role=None):
             return view_func(*args, **kwargs)
 
         return wrapped_view
+        print("TOKEN:", token)
+        print("DECODED:", data)
     return decorator
 
 
@@ -661,11 +663,12 @@ def login():
         )
 
         response.set_cookie(
-            "session_token",
-            token,
-            httponly=True,
-            samesite="Lax",   # 🔥 KEY CHANGE
-            path="/"   # 🔥 ADD THIS LINE
+        "session_token",
+        token,
+        httponly=True,
+        secure=True,        # 🔥 REQUIRED for Vercel (HTTPS)
+        samesite="None",    # 🔥 IMPORTANT
+        path="/"
         )
 
         return response
@@ -713,7 +716,19 @@ def trainer_course_rewiseed_mark_paid(current_user, course_id):
 @app.route("/logout")
 def logout():
     response = redirect(url_for("login"))
-    response.delete_cookie("session_token")
+    response.delete_cookie(
+    "session_token",
+    path="/"
+    )
+    response.set_cookie(
+    "session_token",
+    token,
+    httponly=True,
+    secure=True,
+    samesite="None",
+    path="/",
+    max_age=60*60*24  # 1 day
+    )
     flash("You have been logged out.", "success")
     return response
 
