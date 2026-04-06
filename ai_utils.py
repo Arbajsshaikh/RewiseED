@@ -107,7 +107,9 @@ Content:
 import os
 from openai import OpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+from ai_utils import get_client
+
+client = get_client()
 
 def transcribe_audio(audio_path):
     """
