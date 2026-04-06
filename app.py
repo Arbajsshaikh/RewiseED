@@ -1465,7 +1465,9 @@ def trainer_course_update_price(current_user, course_id):
     flash("Course price updated.", "success")
     return redirect(request.referrer or url_for("trainer_courses"))
 
-BASE_UPLOAD_FOLDER = os.path.join(app.static_folder, "uploads")
+import tempfile
+
+BASE_UPLOAD_FOLDER = os.path.join(tempfile.gettempdir(), "uploads")
 VIDEOS_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, "videos")
 RESOURCES_UPLOAD_FOLDER = os.path.join(BASE_UPLOAD_FOLDER, "resources")
 
@@ -1774,7 +1776,7 @@ def trainer_video_upload(current_user, course_id):
 
         # 3️⃣ CREATE SUMMARY FILE (THIS IS THE KEY PART)
         base_dir = os.getcwd()
-        summary_dir = os.path.join(base_dir, "summaries")
+        summary_dir = os.path.join(tempfile.gettempdir(), "summaries")
         os.makedirs(summary_dir, exist_ok=True)
 
         # ⚠️ video_id not available yet, so use filename timestamp
