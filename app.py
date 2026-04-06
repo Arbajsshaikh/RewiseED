@@ -37,7 +37,12 @@ import os
 import tempfile
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
-app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "fallback-secret")
+app.config.update(
+    SECRET_KEY=os.getenv("SECRET_KEY", "fallback-secret"),
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="None"
+)
 
 
 # Database (keep as is for now)
@@ -641,9 +646,11 @@ def login():
             return redirect(url_for("login"))
 
         session["user_id"] = user.id
+        session.modified = True   # 🔥 ADD THIS
         session["user_role"] = user.role
         session["user_name"] = user.name
-
+        print("SESSION DATA:", dict(session))  
+        
         if user.role == "trainer":
             return redirect(url_for("trainer_dashboard"))
         else:
