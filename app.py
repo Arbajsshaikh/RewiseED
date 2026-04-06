@@ -10,7 +10,6 @@ from ai_utils import  generate_quiz_from_text
 import json
 from openai import OpenAI
 from flask import request, jsonify, current_app
-from itsdangerous import URLSafeSerializer
 
 import os
 
@@ -38,10 +37,13 @@ import tempfile
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 import os
-app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "fallback-secret")
 
-
-serializer = URLSafeSerializer(app.config['SECRET_KEY'])
+app.config.update(
+    SECRET_KEY=os.getenv("SECRET_KEY", "super-secret-key"),
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_SAMESITE="None",
+    SESSION_COOKIE_HTTPONLY=True,
+)
 # Database (keep as is for now)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join('/tmp', 'academic.db')
@@ -393,39 +395,27 @@ def login_required(role=None):
     def decorator(view_func):
         @wraps(view_func)
         def wrapped_view(*args, **kwargs):
-            print("COOKIES:", request.cookies)
-            token = request.cookies.get("session_token")
 
-            if not token:
-                flash("Please log in to continue.", "error")
-                return redirect(url_for("login"))
+            user_id = session.get("user_id")
 
-            try:
-                data = serializer.loads(token)
-                user_id = data.get("user_id")
-            except Exception:
-                flash("Session expired. Please log in again.", "error")
+            if not user_id:
+                flash("Please log in.", "error")
                 return redirect(url_for("login"))
 
             user = User.query.get(user_id)
 
             if not user:
-                flash("Please log in again.", "error")
+                session.clear()
                 return redirect(url_for("login"))
 
             if role and user.role != role:
-                flash("You are not authorized to access that page.", "error")
+                flash("Unauthorized access.", "error")
                 return redirect(url_for("login"))
 
-            kwargs["current_user"] = user
-            return view_func(*args, **kwargs)
+            return view_func(*args, current_user=user, **kwargs)
 
         return wrapped_view
-        print("TOKEN:", token)
-        print("DECODED:", data)
     return decorator
-
-
 
 
 def seed_data():
@@ -634,6 +624,8 @@ def run_rewiseed_for_course(course: Course):
 
 
 
+from flask import session
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -642,6 +634,7 @@ def login():
         role = request.form.get("role", "trainer")
 
         user = User.query.filter_by(email=email).first()
+
         if not user or not user.check_password(password):
             flash("Invalid email or password.", "error")
             return redirect(url_for("login"))
@@ -650,30 +643,18 @@ def login():
             flash(f"This account is registered as {user.role.title()}, not {role.title()}.", "error")
             return redirect(url_for("login"))
 
-        # ✅ CREATE TOKEN INSTEAD OF SESSION
-        token = serializer.dumps({
-            "user_id": user.id,
-            "role": user.role,
-            "name": user.name
-        })
+        # ✅ USE SESSION (NOT COOKIE TOKEN)
+        session["user_id"] = user.id
+        session["role"] = user.role
 
-        response = redirect(
+        return redirect(
             url_for("trainer_dashboard") if user.role == "trainer"
             else url_for("student_dashboard")
         )
 
-        response.set_cookie(
-        "session_token",
-        token,
-        httponly=True,
-        secure=True,        # 🔥 REQUIRED for Vercel (HTTPS)
-        samesite="None",    # 🔥 IMPORTANT
-        path="/"
-        )
-
-        return response
-
     return render_template("login.html")
+
+
 
 @app.route("/trainer/courses/<int:course_id>/rewiseed")
 @login_required(role="trainer")
@@ -715,22 +696,9 @@ def trainer_course_rewiseed_mark_paid(current_user, course_id):
 
 @app.route("/logout")
 def logout():
-    response = redirect(url_for("login"))
-    response.delete_cookie(
-    "session_token",
-    path="/"
-    )
-    response.set_cookie(
-    "session_token",
-    token,
-    httponly=True,
-    secure=True,
-    samesite="None",
-    path="/",
-    max_age=60*60*24  # 1 day
-    )
-    flash("You have been logged out.", "success")
-    return response
+    session.clear()
+    flash("Logged out successfully.", "success")
+    return redirect(url_for("login"))
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
