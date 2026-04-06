@@ -37,7 +37,8 @@ import os
 import tempfile
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
-app.config['SECRET_KEY'] = 'change-this-secret-key'
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "fallback-secret")
+
 
 # Database (keep as is for now)
 basedir = os.path.abspath(os.path.dirname(__file__))
