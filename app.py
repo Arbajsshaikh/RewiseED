@@ -38,15 +38,8 @@ import tempfile
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 import os
+app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "fallback-secret")
 
-app.config.update(
-    SECRET_KEY=os.getenv("SECRET_KEY", "fallback-secret"),
-
-    SESSION_COOKIE_SECURE=True,      # required for HTTPS
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="None",  # VERY IMPORTANT
-
-)
 
 serializer = URLSafeSerializer(app.config['SECRET_KEY'])
 # Database (keep as is for now)
@@ -400,7 +393,7 @@ def login_required(role=None):
     def decorator(view_func):
         @wraps(view_func)
         def wrapped_view(*args, **kwargs):
-
+            print("COOKIES:", request.cookies)
             token = request.cookies.get("session_token")
 
             if not token:
@@ -670,9 +663,8 @@ def login():
         response.set_cookie(
             "session_token",
             token,
-            secure=True,
             httponly=True,
-            samesite="None"
+            samesite="Lax"   # 🔥 KEY CHANGE
         )
 
         return response
