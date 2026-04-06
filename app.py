@@ -18,10 +18,9 @@ import os
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
-# Uses OPENAI_API_KEY from environment
-client = OpenAI(api_key=OPENAI_API_KEY
-)
+from ai_utils import get_client
 
+client = get_client()
 # ---------- OpenAI client helper ----------
 
 def get_ai_client() -> OpenAI | None:
@@ -1547,7 +1546,9 @@ Keep it under 350 words.
     try:
         # Reuse the same OpenAI client you already use for AI quiz, WITHOUT temperature param
         from openai import OpenAI  # if not already imported at top
-        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        from ai_utils import get_client
+
+        client = get_client()
 
         resp = client.responses.create(
             model="gpt-5.1-nano",   # same model you used for quizzes
@@ -3841,7 +3842,9 @@ def submit_student_assessment(user, course_id, assessment_id):
 
 from openai import OpenAI
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+from ai_utils import get_client
+
+client = get_client()
 
 
 # 🔥 ADD ONLY THIS
