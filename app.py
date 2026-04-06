@@ -384,7 +384,7 @@ class Question(db.Model):
 
 
 from functools import wraps
-from flask import session, redirect, url_for, flash
+from flask import  redirect, url_for, flash
 
 from functools import wraps
 from flask import request, redirect, url_for, flash
@@ -664,7 +664,8 @@ def login():
             "session_token",
             token,
             httponly=True,
-            samesite="Lax"   # 🔥 KEY CHANGE
+            samesite="Lax",   # 🔥 KEY CHANGE
+            path="/"   # 🔥 ADD THIS LINE
         )
 
         return response
@@ -1797,7 +1798,7 @@ def trainer_video_upload(current_user, course_id):
             raise ValueError("Summary generation returned empty text")
 
         # 3️⃣ CREATE SUMMARY FILE (THIS IS THE KEY PART)
-        base_dir = os.getcwd()
+        base_dir = tempfile.gettempdir()
         summary_dir = os.path.join(tempfile.gettempdir(), "summaries")
         os.makedirs(summary_dir, exist_ok=True)
 
@@ -1909,7 +1910,9 @@ def trainer_video_generate_summary(current_user, video_id):
         db.session.commit()
 
         # 5️⃣ SAVE TO FILE (IMPORTANT FOR DEBUG)
-        summary_dir = os.path.join(os.getcwd(), "summaries")
+        summary_dir = os.path.join(tempfile.gettempdir(), "summaries")
+
+
         os.makedirs(summary_dir, exist_ok=True)
 
         summary_file = os.path.join(summary_dir, f"video_{video.id}.txt")
