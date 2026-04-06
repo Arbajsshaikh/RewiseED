@@ -33,14 +33,20 @@ def get_ai_client() -> OpenAI | None:
     return OpenAI(api_key=api_key)
 
 
-app = Flask(__name__,static_folder="static",
-    template_folder="templates")
+import os
+import tempfile
+
+app = Flask(__name__, static_folder="static", template_folder="templates")
 app.config['SECRET_KEY'] = 'change-this-secret-key'
+
+# Database (keep as is for now)
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'academic.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join('/tmp', 'academic.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# where to save uploaded video files (inside static so Flask can serve them)
-app.config['VIDEO_UPLOAD_FOLDER'] = os.path.join(basedir, 'static', 'uploads', 'videos')
+
+# ✅ FIXED upload folder (Vercel-compatible)
+app.config['VIDEO_UPLOAD_FOLDER'] = os.path.join(tempfile.gettempdir(), 'uploads', 'videos')
+
 os.makedirs(app.config['VIDEO_UPLOAD_FOLDER'], exist_ok=True)
 
 # Allow only some extensions for safety
