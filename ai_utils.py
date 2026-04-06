@@ -4,9 +4,21 @@ import json
 from openai import OpenAI
 import os
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-# Uses OPENAI_API_KEY from environment
-client = OpenAI(api_key=OPENAI_API_KEY)
+
+client = None
+
+def get_client():
+    global client
+
+    if client is None:
+        api_key = os.getenv("OPENAI_API_KEY")
+
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY is missing")
+
+        client = OpenAI(api_key=api_key)
+
+    return client
 
 # You can change this to the model you have access to
 OPENAI_MODEL = "gpt-5-nano"
