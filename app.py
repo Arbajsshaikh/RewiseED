@@ -46,8 +46,22 @@ app.config.update(
 )
 # Database (keep as is for now)
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join('/tmp', 'academic.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join('/tmp', 'academic.db')
+database_url = os.getenv("DATABASE_URL")
+
+if database_url:
+    # Supabase / Postgres
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    # fallback for local dev
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///local.db'
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300,
+}
 
 # ✅ FIXED upload folder (Vercel-compatible)
 app.config['VIDEO_UPLOAD_FOLDER'] = os.path.join(tempfile.gettempdir(), 'uploads', 'videos')
@@ -64,6 +78,8 @@ def allowed_video_file(filename: str) -> bool:
 
 
 db = SQLAlchemy(app)
+with app.app_context():
+    db.create_all()
 
 class User(db.Model):
     __tablename__ = "user"
