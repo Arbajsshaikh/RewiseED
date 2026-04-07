@@ -11,10 +11,14 @@ import json
 from openai import OpenAI
 from flask import request, jsonify, current_app
 
-import os
 
 
+from supabase import create_client
 
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 from ai_utils import get_client
 
@@ -354,6 +358,7 @@ class VideoLecture(db.Model):
     title = db.Column(db.String(200), nullable=False)
     filename = db.Column(db.String(255), nullable=False)  # saved file name
     uploaded_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    video_url = db.Column(db.String(500), nullable=True)
 
     # NEW:
     transcript = db.Column(db.Text, nullable=True)
@@ -1500,7 +1505,7 @@ class CourseAsset(db.Model):
     __tablename__ = "course_asset"
     id = db.Column(db.Integer, primary_key=True)
     course_id = db.Column(db.Integer, db.ForeignKey("course.id"), nullable=False)
-
+    
     # 'pdf', 'image', 'ppt', 'audio', 'doc', 'other'
     type = db.Column(db.String(20), nullable=False)
     title = db.Column(db.String(255), nullable=False)
@@ -1509,6 +1514,7 @@ class CourseAsset(db.Model):
     uploaded_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
     course = db.relationship("Course", lazy=True)
+    file_url = db.Column(db.String(500), nullable=True)
 
 def guess_asset_type(filename: str) -> str:
     ext = os.path.splitext(filename)[1].lower()
@@ -1773,7 +1779,18 @@ def trainer_video_upload(current_user, course_id):
     filename = secure_filename(file.filename)
     unique_name = f"{course.id}_{int(datetime.utcnow().timestamp())}_{filename}"
     save_path = os.path.join(app.config["VIDEO_UPLOAD_FOLDER"], unique_name)
-    file.save(save_path)
+    #file.save(save_path)
+    file_bytes = file.read()
+
+    file_path = f"videos/{unique_name}"
+    
+    supabase.storage.from_("videos").upload(
+        file_path,
+        file_bytes,
+        {"content-type": file.content_type}
+    )
+    
+    video_url = f"{SUPABASE_URL}/storage/v1/object/public/videos/{unique_name}"
 
     if not title:
         title = os.path.splitext(filename)[0]
@@ -1821,6 +1838,7 @@ def trainer_video_upload(current_user, course_id):
         course_id=course.id,
         title=title,
         filename=unique_name,
+        video_url=video_url,
         transcript=transcript,
         summary=summary
     )
