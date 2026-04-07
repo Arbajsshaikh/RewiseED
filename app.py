@@ -1864,60 +1864,54 @@ def trainer_video_delete(current_user, video_id):
     flash("Video deleted.", "success")
     return redirect(url_for("trainer_course_detail", course_id=course_id))
 
-@app.route("/trainer/videos/<int:video_id>/generate_summary", methods=["POST"])
+
+@app.route("/trainer/video/<int:video_id>/generate-summary", methods=["POST"])
 @login_required(role="trainer")
 def trainer_video_generate_summary(current_user, video_id):
 
     video = VideoLecture.query.get_or_404(video_id)
-    course = video.course
+    course = Course.query.get_or_404(video.course_id)
 
     if course.trainer_id != current_user.id:
-        flash("Not allowed.", "error")
-        return redirect(url_for("trainer_dashboard"))
-
-    video_path = os.path.join(app.config['VIDEO_UPLOAD_FOLDER'], video.filename)
-    audio_path = video_path.replace(".mp4", ".wav")
+        flash("Unauthorized", "error")
+        return redirect(url_for("trainer_courses"))
 
     try:
-        # 1️⃣ Extract audio
-        os.system(
-            f'ffmpeg -i "{video_path}" -vn -acodec pcm_s16le -ar 16000 -ac 1 "{audio_path}" -y'
-        )
+        import tempfile, requests, subprocess
 
+        # Download video
+        video_response = requests.get(video.video_url)
+        temp_video = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+        temp_video.write(video_response.content)
+        temp_video.close()
+
+        # Convert to audio
+        audio_path = temp_video.name.replace(".mp4", ".wav")
+
+        subprocess.run([
+            "ffmpeg", "-i", temp_video.name,
+            "-vn", "-acodec", "pcm_s16le",
+            "-ar", "16000", "-ac", "1",
+            audio_path, "-y"
+        ])
+
+        # AI processing
         from ai_utils import transcribe_audio, summarize_text
 
-        # 2️⃣ Transcription
         transcript = transcribe_audio(audio_path)
-
-        # 3️⃣ Summary
         summary = summarize_text(transcript)
 
-        # 4️⃣ Save to DB
         video.transcript = transcript
         video.summary = summary
         db.session.commit()
 
-        # 5️⃣ SAVE TO FILE (IMPORTANT FOR DEBUG)
-        summary_dir = os.path.join(tempfile.gettempdir(), "summaries")
-
-
-        os.makedirs(summary_dir, exist_ok=True)
-
-        summary_file = os.path.join(summary_dir, f"video_{video.id}.txt")
-
-        with open(summary_file, "w", encoding="utf-8") as f:
-            f.write(summary)
-
-        flash("AI transcription & summary generated successfully!", "success")
+        flash("AI Summary generated!", "success")
 
     except Exception as e:
-        print("AI video processing error:", e)
-        flash(f"AI summary generation failed: {str(e)}", "error")
+        print("AI ERROR:", e)
+        flash("AI processing failed.", "error")
 
     return redirect(url_for("trainer_course_detail", course_id=course.id))
-
-
-
 
 
 @app.route("/trainer/courses/<int:course_id>/delete", methods=["POST"])
@@ -2957,53 +2951,6 @@ def trainer_groups_detail(current_user, group_id):
         member_ids=member_ids,
     )
 
-@app.route("/trainer/video/<int:video_id>/generate-summary", methods=["POST"])
-@login_required(role="trainer")
-def trainer_video_generate_summary(current_user, video_id):
-
-    video = VideoLecture.query.get_or_404(video_id)
-    course = Course.query.get_or_404(video.course_id)
-
-    if course.trainer_id != current_user.id:
-        flash("Unauthorized", "error")
-        return redirect(url_for("trainer_courses"))
-
-    try:
-        import tempfile, requests, subprocess
-
-        # Download video
-        video_response = requests.get(video.video_url)
-        temp_video = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-        temp_video.write(video_response.content)
-        temp_video.close()
-
-        # Convert to audio
-        audio_path = temp_video.name.replace(".mp4", ".wav")
-
-        subprocess.run([
-            "ffmpeg", "-i", temp_video.name,
-            "-vn", "-acodec", "pcm_s16le",
-            "-ar", "16000", "-ac", "1",
-            audio_path, "-y"
-        ])
-
-        # AI processing
-        from ai_utils import transcribe_audio, summarize_text
-
-        transcript = transcribe_audio(audio_path)
-        summary = summarize_text(transcript)
-
-        video.transcript = transcript
-        video.summary = summary
-        db.session.commit()
-
-        flash("AI Summary generated!", "success")
-
-    except Exception as e:
-        print("AI ERROR:", e)
-        flash("AI processing failed.", "error")
-
-    return redirect(url_for("trainer_course_detail", course_id=course.id))
 
 
 @app.route("/trainer/groups/<int:group_id>/delete", methods=["POST"])
