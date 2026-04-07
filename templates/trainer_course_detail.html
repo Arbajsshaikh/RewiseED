@@ -176,7 +176,7 @@
               </td>
               <td>
                 <video class="video-thumb" controls preload="metadata">
-                  <source src="{{ url_for('static', filename='uploads/videos/' ~ v.filename) }}" type="video/mp4">
+                  <source src="{{ v.video_url }}" type="video/mp4">
                   Your browser does not support the video tag.
                 </video>
               </td>
@@ -266,7 +266,7 @@
             <div class="resource-main">
               <div class="resource-thumb video-thumb-small">
                 <video preload="metadata">
-                  <source src="{{ url_for('static', filename='uploads/videos/' ~ v.filename) }}" type="video/mp4">
+                  <source src="{{ v.video_url }}" type="video/mp4">
                 </video>
               </div>
               <div class="resource-info">
