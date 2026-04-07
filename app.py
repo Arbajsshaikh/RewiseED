@@ -1778,75 +1778,63 @@ def trainer_video_upload(current_user, course_id):
 
     filename = secure_filename(file.filename)
     unique_name = f"{course.id}_{int(datetime.utcnow().timestamp())}_{filename}"
-    save_path = os.path.join(app.config["VIDEO_UPLOAD_FOLDER"], unique_name)
-    #file.save(save_path)
-    file_bytes = file.read()
-
-    file_path = f"{course.id}/{unique_name}"
-    
-    supabase.storage.from_("videos").upload(
-        file_path,
-        file_bytes,
-        {"content-type": file.content_type}
-    )
-    
-    video_url = supabase.storage.from_("videos").get_public_url(file_path)
 
     if not title:
         title = os.path.splitext(filename)[0]
 
-    transcript = None
-    summary = None
-
     try:
-        # 1️⃣ Extract audio
-        audio_path = save_path.replace(".mp4", ".wav")
-        os.system(
-            f'ffmpeg -i "{save_path}" -vn -acodec pcm_s16le -ar 16000 -ac 1 "{audio_path}" -y'
+        # 📦 Read file
+        file_bytes = file.read()
+
+        # 📂 Correct path
+        file_path = f"{course.id}/{unique_name}"
+
+        # 🚀 Upload to Supabase
+        supabase.storage.from_("videos").upload(
+            file_path,
+            file_bytes,
+            {
+                "content-type": file.content_type,
+                "upsert": "true"
+            }
         )
 
-        # 2️⃣ Transcribe + summarize
-        from ai_utils import transcribe_audio, summarize_text
-        transcript = transcribe_audio(audio_path)
-        summary = summarize_text(transcript)
+        # 🔗 Get public URL (FIXED)
+        url_data = supabase.storage.from_("videos").get_public_url(file_path)
 
-        if not summary:
-            raise ValueError("Summary generation returned empty text")
+        if isinstance(url_data, dict):
+            video_url = url_data.get("publicUrl")
+        else:
+            video_url = url_data
 
-        # 3️⃣ CREATE SUMMARY FILE (THIS IS THE KEY PART)
-        base_dir = tempfile.gettempdir()
-        summary_dir = os.path.join(tempfile.gettempdir(), "summaries")
-        os.makedirs(summary_dir, exist_ok=True)
+        print("VIDEO URL:", video_url)
 
-        # ⚠️ video_id not available yet, so use filename timestamp
-        summary_file_path = os.path.join(
-            summary_dir,
-            f"video_{unique_name}.txt"
-        )
+        if not video_url:
+            raise Exception("Failed to generate video URL")
 
-        with open(summary_file_path, "w", encoding="utf-8") as f:
-            f.write(summary)
-
-        flash("Video uploaded and summary generated successfully!", "success")
+        flash("Video uploaded successfully!", "success")
 
     except Exception as e:
-        print("AI processing error:", e)
-        flash("Video uploaded, but summary generation failed.", "warning")
+        print("UPLOAD ERROR:", e)
+        flash("Upload failed.", "error")
+        return redirect(url_for("trainer_course_detail", course_id=course.id))
 
-    # 4️⃣ Save to DB
+    # 💾 Save to DB
     video = VideoLecture(
         course_id=course.id,
         title=title,
         filename=unique_name,
         video_url=video_url,
-        transcript=transcript,
-        summary=summary
+        transcript=None,
+        summary=None
     )
 
     db.session.add(video)
     db.session.commit()
 
     return redirect(url_for("trainer_course_detail", course_id=course.id))
+
+
 
 @app.route("/trainer/videos/<int:video_id>/rename", methods=["POST"])
 @login_required(role="trainer")
