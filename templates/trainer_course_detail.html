@@ -184,12 +184,12 @@
               <td class="actions-col">
 
   <!-- ⭐ NEW BUTTON ⭐ -->
-  <form method="post"
-        action="{{ url_for('trainer_video_generate_summary', video_id=v.id) }}"
-        class="inline-form"
-        style="margin-bottom:6px;">
-    <button type="submit" class="btn-sm btn-ghost">Generate AI Summary</button>
-  </form>
+<form method="post"
+      action="{{ url_for('trainer_video_generate_summary', video_id=v.id) }}">
+  <button type="submit" class="btn-sm btn-ghost">
+    Generate AI Summary
+  </button>
+</form>
 
   <!-- Existing delete button -->
   <form method="post"
