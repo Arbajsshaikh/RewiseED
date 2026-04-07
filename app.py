@@ -1763,6 +1763,8 @@ def trainer_asset_delete(current_user, asset_id):
 @login_required(role="trainer")
 def trainer_video_upload(current_user, course_id):
 
+    import traceback
+
     course = Course.query.filter_by(
         id=course_id,
         trainer_id=current_user.id
@@ -1783,25 +1785,45 @@ def trainer_video_upload(current_user, course_id):
 
     try:
         file_bytes = file.read()
+
+        print("FILE SIZE:", len(file_bytes))  # DEBUG
+
         file_path = f"{course.id}/{unique_name}"
 
-        # Upload
-        supabase.storage.from_("videos").upload(
+        # 🚀 Upload
+        res = supabase.storage.from_("videos").upload(
             file_path,
             file_bytes,
-            {"content-type": file.content_type, "upsert": "true"}
+            {
+                "content-type": file.content_type,
+                "upsert": "true"
+            }
         )
 
-        # Get URL
+        print("UPLOAD RESPONSE:", res)
+
+        # 🔗 Get URL
         url_data = supabase.storage.from_("videos").get_public_url(file_path)
-        video_url = url_data.get("publicUrl") if isinstance(url_data, dict) else url_data
+
+        video_url = (
+            url_data.get("publicUrl")
+            if isinstance(url_data, dict)
+            else url_data
+        )
+
+        print("VIDEO URL:", video_url)
+
+        if not video_url:
+            raise Exception("Video URL is empty")
 
     except Exception as e:
-        print("UPLOAD ERROR:", e)
-        flash("Upload failed.", "error")
+        print("❌ UPLOAD ERROR:", e)
+        traceback.print_exc()
+
+        flash(f"Upload failed: {str(e)}", "error")
         return redirect(request.referrer or url_for("trainer_courses"))
 
-    # Save in DB
+    # 💾 Save DB
     video = VideoLecture(
         course_id=course.id,
         title=title,
@@ -1814,9 +1836,9 @@ def trainer_video_upload(current_user, course_id):
     db.session.add(video)
     db.session.commit()
 
-    flash("Video uploaded! Now generate AI summary.", "success")
+    flash("✅ Video uploaded successfully!", "success")
     return redirect(request.referrer or url_for("trainer_courses"))
-    
+
 
 
 @app.route("/trainer/videos/<int:video_id>/rename", methods=["POST"])
@@ -1864,10 +1886,11 @@ def trainer_video_delete(current_user, video_id):
     flash("Video deleted.", "success")
     return redirect(url_for("trainer_course_detail", course_id=course_id))
 
-
 @app.route("/trainer/video/<int:video_id>/generate-summary", methods=["POST"])
 @login_required(role="trainer")
 def trainer_video_generate_summary(current_user, video_id):
+
+    import traceback
 
     video = VideoLecture.query.get_or_404(video_id)
     course = Course.query.get_or_404(video.course_id)
@@ -1879,23 +1902,27 @@ def trainer_video_generate_summary(current_user, video_id):
     try:
         import tempfile, requests, subprocess
 
-        # Download video
+        print("Downloading video...")
+
         video_response = requests.get(video.video_url)
+        if video_response.status_code != 200:
+            raise Exception("Failed to download video")
+
         temp_video = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
         temp_video.write(video_response.content)
         temp_video.close()
 
-        # Convert to audio
         audio_path = temp_video.name.replace(".mp4", ".wav")
+
+        print("Running ffmpeg...")
 
         subprocess.run([
             "ffmpeg", "-i", temp_video.name,
             "-vn", "-acodec", "pcm_s16le",
             "-ar", "16000", "-ac", "1",
             audio_path, "-y"
-        ])
+        ], check=True)
 
-        # AI processing
         from ai_utils import transcribe_audio, summarize_text
 
         transcript = transcribe_audio(audio_path)
@@ -1905,15 +1932,15 @@ def trainer_video_generate_summary(current_user, video_id):
         video.summary = summary
         db.session.commit()
 
-        flash("AI Summary generated!", "success")
+        flash("✅ AI Summary generated!", "success")
 
     except Exception as e:
-        print("AI ERROR:", e)
-        flash("AI processing failed.", "error")
+        print("❌ AI ERROR:", e)
+        traceback.print_exc()
+
+        flash("AI failed (likely ffmpeg or timeout issue)", "error")
 
     return redirect(request.referrer or url_for("trainer_courses"))
-
-
 @app.route("/trainer/courses/<int:course_id>/delete", methods=["POST"])
 @login_required(role="trainer")
 def trainer_course_delete(current_user, course_id):
