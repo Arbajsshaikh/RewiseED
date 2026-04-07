@@ -1913,34 +1913,22 @@ def trainer_video_generate_summary(current_user, video_id):
         return redirect(url_for("trainer_courses"))
 
     try:
-        import tempfile, requests, subprocess
+        print("Processing video (OpenAI transcription)...")
 
-        print("Downloading video...")
+        # 🔥 NEW: use Vercel-safe function
+        from ai_utils import transcribe_video_from_url, summarize_text
 
-        video_response = requests.get(video.video_url)
-        if video_response.status_code != 200:
-            raise Exception("Failed to download video")
+        # ✅ TRANSCRIBE (no ffmpeg)
+        transcript = transcribe_video_from_url(video.video_url)
 
-        temp_video = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
-        temp_video.write(video_response.content)
-        temp_video.close()
+        print("Transcript generated")
 
-        audio_path = temp_video.name.replace(".mp4", ".wav")
-
-        print("Running ffmpeg...")
-
-        subprocess.run([
-            "ffmpeg", "-i", temp_video.name,
-            "-vn", "-acodec", "pcm_s16le",
-            "-ar", "16000", "-ac", "1",
-            audio_path, "-y"
-        ], check=True)
-
-        from ai_utils import transcribe_audio, summarize_text
-
-        transcript = transcribe_audio(audio_path)
+        # ✅ SUMMARY
         summary = summarize_text(transcript)
 
+        print("Summary generated")
+
+        # 💾 SAVE
         video.transcript = transcript
         video.summary = summary
         db.session.commit()
@@ -1951,9 +1939,13 @@ def trainer_video_generate_summary(current_user, video_id):
         print("❌ AI ERROR:", e)
         traceback.print_exc()
 
-        flash("AI failed (likely ffmpeg or timeout issue)", "error")
+        flash(f"AI failed: {str(e)}", "error")
 
     return redirect(request.referrer or url_for("trainer_courses"))
+
+
+
+
 @app.route("/trainer/courses/<int:course_id>/delete", methods=["POST"])
 @login_required(role="trainer")
 def trainer_course_delete(current_user, course_id):
