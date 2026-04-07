@@ -1073,7 +1073,7 @@ def trainer_course_ai_plan(current_user, course_id):
     course.ai_outline_json = json.dumps(outline)
     db.session.commit()
     flash("AI lesson plan generated for this course.", "success")
-    return redirect(url_for("trainer_course_detail", course_id=course.id))
+    return redirect(request.referrer or url_for("trainer_courses"))
 
 # ========== TRAINER: COURSES PAGES ==========
 
@@ -1620,13 +1620,13 @@ def trainer_asset_upload(current_user, course_id):
     file = request.files.get("asset_file")
     if not file or file.filename == "":
         flash("No file selected.", "error")
-        return redirect(url_for("trainer_course_detail", course_id=course.id))
+        return redirect(request.referrer or url_for("trainer_courses"))
 
     original_name = file.filename
     safe_name = secure_filename(original_name)
     if not safe_name:
         flash("Invalid file name.", "error")
-        return redirect(url_for("trainer_course_detail", course_id=course.id))
+        return redirect(request.referrer or url_for("trainer_courses"))
 
     file_path = os.path.join(RESOURCES_UPLOAD_FOLDER, safe_name)
 
@@ -1652,7 +1652,7 @@ def trainer_asset_upload(current_user, course_id):
     db.session.add(asset)
     db.session.commit()
     flash("File uploaded.", "success")
-    return redirect(url_for("trainer_course_detail", course_id=course.id))
+    return redirect(request.referrer or url_for("trainer_courses"))
 
 @app.route("/trainer/courses/<int:course_id>/revenue")
 @login_required(role="trainer")
@@ -1729,12 +1729,12 @@ def trainer_asset_rename(current_user, asset_id):
     title = (request.form.get("title") or "").strip()
     if not title:
         flash("Title cannot be empty.", "error")
-        return redirect(url_for("trainer_course_detail", course_id=course.id))
+        return redirect(request.referrer or url_for("trainer_courses"))
 
     asset.title = title
     db.session.commit()
     flash("Resource renamed.", "success")
-    return redirect(url_for("trainer_course_detail", course_id=course.id))
+    return redirect(request.referrer or url_for("trainer_courses"))
 
 
 @app.route("/trainer/assets/<int:asset_id>/delete", methods=["POST"])
@@ -1756,7 +1756,7 @@ def trainer_asset_delete(current_user, asset_id):
     db.session.delete(asset)
     db.session.commit()
     flash("Resource deleted.", "success")
-    return redirect(url_for("trainer_course_detail", course_id=course.id))
+    return redirect(request.referrer or url_for("trainer_courses"))
 
 
 @app.route("/trainer/courses/<int:course_id>/videos/upload", methods=["POST"])
@@ -1773,7 +1773,7 @@ def trainer_video_upload(current_user, course_id):
 
     if not file or file.filename == "":
         flash("Please select a video file.", "error")
-        return redirect(url_for("trainer_course_detail", course_id=course.id))
+        return redirect(request.referrer or url_for("trainer_courses"))
 
     filename = secure_filename(file.filename)
     unique_name = f"{course.id}_{int(datetime.utcnow().timestamp())}_{filename}"
@@ -1799,7 +1799,7 @@ def trainer_video_upload(current_user, course_id):
     except Exception as e:
         print("UPLOAD ERROR:", e)
         flash("Upload failed.", "error")
-        return redirect(url_for("trainer_course_detail", course_id=course.id))
+        return redirect(request.referrer or url_for("trainer_courses"))
 
     # Save in DB
     video = VideoLecture(
@@ -1815,7 +1815,7 @@ def trainer_video_upload(current_user, course_id):
     db.session.commit()
 
     flash("Video uploaded! Now generate AI summary.", "success")
-    return redirect(url_for("trainer_course_detail", course_id=course.id))
+    return redirect(request.referrer or url_for("trainer_courses"))
     
 
 
@@ -1911,7 +1911,7 @@ def trainer_video_generate_summary(current_user, video_id):
         print("AI ERROR:", e)
         flash("AI processing failed.", "error")
 
-    return redirect(url_for("trainer_course_detail", course_id=course.id))
+    return redirect(request.referrer or url_for("trainer_courses"))
 
 
 @app.route("/trainer/courses/<int:course_id>/delete", methods=["POST"])
