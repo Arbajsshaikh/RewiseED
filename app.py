@@ -78,8 +78,8 @@ def allowed_video_file(filename: str) -> bool:
 
 
 db = SQLAlchemy(app)
-with app.app_context():
-    db.create_all()
+#with app.app_context():
+    #db.create_all()
 
 class User(db.Model):
     __tablename__ = "user"
