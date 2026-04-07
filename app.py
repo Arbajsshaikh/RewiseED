@@ -1782,7 +1782,7 @@ def trainer_video_upload(current_user, course_id):
     #file.save(save_path)
     file_bytes = file.read()
 
-    file_path = f"videos/{unique_name}"
+    file_path = f"{course.id}/{unique_name}"
     
     supabase.storage.from_("videos").upload(
         file_path,
@@ -1790,7 +1790,7 @@ def trainer_video_upload(current_user, course_id):
         {"content-type": file.content_type}
     )
     
-    video_url = f"{SUPABASE_URL}/storage/v1/object/public/videos/{unique_name}"
+    video_url = supabase.storage.from_("videos").get_public_url(file_path)
 
     if not title:
         title = os.path.splitext(filename)[0]
