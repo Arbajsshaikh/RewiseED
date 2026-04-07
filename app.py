@@ -1864,22 +1864,35 @@ def trainer_video_rename(current_user, video_id):
 @app.route("/trainer/videos/<int:video_id>/delete", methods=["POST"])
 @login_required(role="trainer")
 def trainer_video_delete(current_user, video_id):
+
+    import traceback
+
     video = VideoLecture.query.get_or_404(video_id)
 
     if video.course.trainer_id != current_user.id:
         flash("You are not allowed to delete this video.", "error")
         return redirect(url_for("trainer_dashboard"))
 
-    # try to delete the file from disk
-    file_path = os.path.join(app.config['VIDEO_UPLOAD_FOLDER'], video.filename)
     try:
-        if os.path.exists(file_path):
-            os.remove(file_path)
-    except Exception:
-        # don't crash if file deletion fails
-        pass
+        # 🔥 DELETE FROM SUPABASE STORAGE
+        if video.video_url:
+            # Extract path from URL
+            # Example:
+            # https://xxx.supabase.co/storage/v1/object/public/videos/6/file.mp4
+            file_path = video.video_url.split("/videos/")[-1]
+
+            print("Deleting from storage:", file_path)
+
+            supabase.storage.from_("videos").remove([file_path])
+
+    except Exception as e:
+        print("STORAGE DELETE ERROR:", e)
+        traceback.print_exc()
+        # continue anyway (don’t block DB delete)
 
     course_id = video.course_id
+
+    # ✅ DELETE FROM DB
     db.session.delete(video)
     db.session.commit()
 
