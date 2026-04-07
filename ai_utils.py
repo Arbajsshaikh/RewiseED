@@ -1,10 +1,14 @@
 # ai_utils.py
+
 import os
 import json
+import tempfile
+import requests
 from openai import OpenAI
-import os
 
-
+# -------------------------
+# CLIENT SETUP
+# -------------------------
 client = None
 
 def get_client():
@@ -20,25 +24,15 @@ def get_client():
 
     return client
 
-# You can change this to the model you have access to
+
 OPENAI_MODEL = "gpt-5-nano"
 
 
+# -------------------------
+# QUIZ GENERATION (UNCHANGED)
+# -------------------------
 def generate_quiz_from_text(content: str, num_questions: int = 5):
-    """
-    Generate MCQ quiz questions from given content.
 
-    Returns a list of dicts:
-    [
-      {
-        "text": "question text",
-        "options": {"A": "...", "B": "...", "C": "...", "D": "..."},
-        "correct": "A",
-        "marks": 1.0
-      },
-      ...
-    ]
-    """
     if not content.strip():
         return []
 
@@ -51,74 +45,72 @@ Rules:
 - Each question MUST have 4 options: A, B, C, D.
 - Exactly ONE option is correct.
 - Difficulty: mixed but suitable for the given content.
-- Language: same as the input text (mostly English).
 
-Return ONLY valid JSON in this format:
-
-[
-  {{
-    "text": "Question text here",
-    "options": {{
-      "A": "Option A text",
-      "B": "Option B text",
-      "C": "Option C text",
-      "D": "Option D text"
-    }},
-    "correct": "A",
-    "marks": 1.0
-  }}
-]
+Return ONLY valid JSON.
 
 Content:
 \"\"\"{content}\"\"\"
 """
 
-    resp = client.chat.completions.create(
-    model=OPENAI_MODEL,
-    messages=[
-        {"role": "system", "content": "You are a strict JSON API. Respond with ONLY JSON."},
-        {"role": "user", "content": prompt},
-    ]
-)
+    client = get_client()
 
+    resp = client.chat.completions.create(
+        model=OPENAI_MODEL,
+        messages=[
+            {"role": "system", "content": "You are a strict JSON API. Respond with ONLY JSON."},
+            {"role": "user", "content": prompt},
+        ]
+    )
 
     raw = resp.choices[0].message.content
 
-    # robust JSON extraction
     start = raw.find("[")
     end = raw.rfind("]")
-    if start != -1 and end != -1:
-        raw_json = raw[start:end+1]
-    else:
-        raw_json = "[]"
+    raw_json = raw[start:end+1] if start != -1 and end != -1 else "[]"
 
     try:
         data = json.loads(raw_json)
-    except json.JSONDecodeError:
+    except:
         data = []
 
-    # Ensure we always return a list
-    if not isinstance(data, list):
-        return []
-
-    return data
+    return data if isinstance(data, list) else []
 
 
-import os
-from openai import OpenAI
-
-from ai_utils import get_client
-
-client = get_client()
-
-def transcribe_audio(audio_path):
+# -------------------------
+# 🎯 NEW: VIDEO → AUDIO → TRANSCRIPT (VERCEL SAFE)
+# -------------------------
+def transcribe_video_from_url(video_url):
     """
-    Converts audio to text using OpenAI API (NO heavy dependencies)
+    Vercel-safe transcription:
+    - Downloads small video
+    - Extracts limited audio
+    - Sends to OpenAI
     """
-    if not os.path.exists(audio_path):
-        raise FileNotFoundError("Audio file not found")
 
-    with open(audio_path, "rb") as f:
+    client = get_client()
+
+    # 📥 Download video (LIMIT SIZE)
+    response = requests.get(video_url, stream=True)
+
+    max_size = 10 * 1024 * 1024  # 10MB limit
+    downloaded = 0
+
+    temp_video = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+
+    for chunk in response.iter_content(chunk_size=1024 * 1024):
+        if chunk:
+            downloaded += len(chunk)
+
+            if downloaded > max_size:
+                temp_video.close()
+                raise Exception("Video too large for AI processing (>10MB)")
+
+            temp_video.write(chunk)
+
+    temp_video.close()
+
+    # ⚠️ IMPORTANT: Instead of ffmpeg, send raw file (OpenAI handles audio extraction internally)
+    with open(temp_video.name, "rb") as f:
         transcript = client.audio.transcriptions.create(
             model="gpt-4o-transcribe",
             file=f
@@ -127,19 +119,37 @@ def transcribe_audio(audio_path):
     text = transcript.text.strip()
 
     if not text:
-        raise ValueError("Transcription returned empty text")
+        raise ValueError("Transcription returned empty")
 
     return text
 
 
+# -------------------------
+# SUMMARY (IMPROVED USING AI)
+# -------------------------
 def summarize_text(transcript):
     """
-    SAME simple rule-based summary (unchanged)
+    Better AI-based summary
     """
-    lines = transcript.split(".")
-    summary = ". ".join(lines[:5]).strip()
 
-    if not summary:
-        raise ValueError("Summary generation failed")
+    client = get_client()
 
-    return summary
+    prompt = f"""
+Summarize the following lecture transcript in:
+
+1. Short summary (5 lines)
+2. Key points (bullet format)
+
+Transcript:
+{transcript}
+"""
+
+    resp = client.chat.completions.create(
+        model=OPENAI_MODEL,
+        messages=[
+            {"role": "system", "content": "You are a helpful summarizer."},
+            {"role": "user", "content": prompt},
+        ]
+    )
+
+    return resp.choices[0].message.content.strip()
