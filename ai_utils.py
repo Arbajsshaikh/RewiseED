@@ -4,10 +4,10 @@ import os
 import json
 import tempfile
 import requests
-import google.generativeai as genai
+from google import genai
 
 # -------------------------
-# CLIENT SETUP (COMPATIBLE)
+# CLIENT SETUP
 # -------------------------
 client = None
 
@@ -20,17 +20,16 @@ def get_client():
         if not api_key:
             raise ValueError("GEMINI_API_KEY is missing")
 
-        genai.configure(api_key=api_key)
-        client = genai.GenerativeModel("gemini-1.5-flash")
+        client = genai.Client(api_key=api_key)
 
     return client
 
 
-OPENAI_MODEL = "gemini-1.5-flash"  # just to avoid breaking references
+OPENAI_MODEL = "gemini-1.5-flash"  # keep name for compatibility
 
 
 # -------------------------
-# QUIZ GENERATION (SAME FUNCTION)
+# QUIZ GENERATION
 # -------------------------
 def generate_quiz_from_text(content: str, num_questions: int = 5):
 
@@ -38,38 +37,39 @@ def generate_quiz_from_text(content: str, num_questions: int = 5):
         return []
 
     prompt = f"""
-You are a course quiz generator for an LMS platform.
-
-From the following content, create {num_questions} multiple-choice questions.
+Create {num_questions} MCQ questions.
 
 Rules:
-- Each question MUST have 4 options: A, B, C, D.
-- Exactly ONE option is correct.
-- Return ONLY valid JSON.
+- 4 options (A,B,C,D)
+- One correct answer
+- Return ONLY JSON array
 
 Content:
-\"\"\"{content}\"\"\"
+{content}
 """
 
     client = get_client()
 
-    response = client.generate_content(prompt)
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=prompt
+    )
+
     raw = response.text
 
     start = raw.find("[")
     end = raw.rfind("]")
+
     raw_json = raw[start:end+1] if start != -1 and end != -1 else "[]"
 
     try:
-        data = json.loads(raw_json)
+        return json.loads(raw_json)
     except:
-        data = []
-
-    return data if isinstance(data, list) else []
+        return []
 
 
 # -------------------------
-# 🎯 VIDEO → TRANSCRIPT (GEMINI)
+# 🎯 VIDEO TRANSCRIPTION
 # -------------------------
 def transcribe_video_from_url(video_url):
 
@@ -77,18 +77,18 @@ def transcribe_video_from_url(video_url):
 
     response = requests.get(video_url, stream=True)
 
-    max_size = 10 * 1024 * 1024  # 10MB limit
+    max_size = 10 * 1024 * 1024
     downloaded = 0
 
     temp_video = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
 
-    for chunk in response.iter_content(chunk_size=1024 * 1024):
+    for chunk in response.iter_content(1024 * 1024):
         if chunk:
             downloaded += len(chunk)
 
             if downloaded > max_size:
                 temp_video.close()
-                raise Exception("Video too large for AI processing (>10MB)")
+                raise Exception("Video too large (>10MB)")
 
             temp_video.write(chunk)
 
@@ -97,13 +97,13 @@ def transcribe_video_from_url(video_url):
     with open(temp_video.name, "rb") as f:
         video_bytes = f.read()
 
-    response = client.generate_content([
-        {
-            "mime_type": "video/mp4",
-            "data": video_bytes
-        },
-        "Transcribe this video clearly."
-    ])
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=[
+            {"mime_type": "video/mp4", "data": video_bytes},
+            "Transcribe this video clearly."
+        ]
+    )
 
     text = response.text.strip()
 
@@ -114,22 +114,24 @@ def transcribe_video_from_url(video_url):
 
 
 # -------------------------
-# SUMMARY (GEMINI)
+# SUMMARY
 # -------------------------
 def summarize_text(transcript):
 
     client = get_client()
 
     prompt = f"""
-Summarize the following lecture transcript in:
+Summarize the following lecture:
 
 1. Short summary (5 lines)
-2. Key points (bullet format)
+2. Key points
 
-Transcript:
 {transcript}
 """
 
-    response = client.generate_content(prompt)
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=prompt
+    )
 
     return response.text.strip()
