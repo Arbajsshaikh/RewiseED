@@ -2,10 +2,7 @@
 
 import os
 import json
-import tempfile
-import requests
 from google.genai import Client
-import os
 
 
 # -------------------------
@@ -22,13 +19,12 @@ def get_client():
         if not api_key:
             raise ValueError("GEMINI_API_KEY is missing")
 
-        client = Client(api_key=os.environ.get("GEMINI_API_KEY"))
-
+        client = Client(api_key=api_key)
 
     return client
 
 
-OPENAI_MODEL = "gemini-1.5-flash"  # keep name for compatibility
+MODEL = "gemini-1.5-flash"
 
 
 # -------------------------
@@ -36,7 +32,7 @@ OPENAI_MODEL = "gemini-1.5-flash"  # keep name for compatibility
 # -------------------------
 def generate_quiz_from_text(content: str, num_questions: int = 5):
 
-    if not content.strip():
+    if not content or not content.strip():
         return []
 
     prompt = f"""
@@ -53,67 +49,58 @@ Content:
 
     client = get_client()
 
-    response = client.models.generate_content(
-        model="gemini-1.5-flash",
-        contents=prompt
-    )
-
-    raw = response.text
-
-    start = raw.find("[")
-    end = raw.rfind("]")
-
-    raw_json = raw[start:end+1] if start != -1 and end != -1 else "[]"
-
     try:
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=prompt
+        )
+
+        raw = response.text or ""
+
+        start = raw.find("[")
+        end = raw.rfind("]")
+
+        raw_json = raw[start:end+1] if start != -1 and end != -1 else "[]"
+
         return json.loads(raw_json)
-    except:
+
+    except Exception as e:
+        print("QUIZ ERROR:", str(e))
         return []
 
 
 # -------------------------
-# 🎯 VIDEO TRANSCRIPTION
+# 🎯 VIDEO TRANSCRIPTION (FIXED)
 # -------------------------
 def transcribe_video_from_url(video_url):
 
     client = get_client()
 
-    response = requests.get(video_url, stream=True)
+    if not video_url:
+        raise ValueError("Video URL is empty")
 
-    max_size = 10 * 1024 * 1024
-    downloaded = 0
+    try:
+        # ✅ FIX: DO NOT download video
+        # ✅ Directly pass URL to Gemini
 
-    temp_video = tempfile.NamedTemporaryFile(delete=False, suffix=".mp4")
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=[
+                video_url,
+                "Transcribe this video clearly. Provide clean readable text."
+            ]
+        )
 
-    for chunk in response.iter_content(1024 * 1024):
-        if chunk:
-            downloaded += len(chunk)
+        text = (response.text or "").strip()
 
-            if downloaded > max_size:
-                temp_video.close()
-                raise Exception("Video too large (>10MB)")
+        if not text:
+            raise ValueError("Empty transcription")
 
-            temp_video.write(chunk)
+        return text
 
-    temp_video.close()
-
-    with open(temp_video.name, "rb") as f:
-        video_bytes = f.read()
-
-    response = client.models.generate_content(
-        model="gemini-1.5-flash",
-        contents=[
-            {"mime_type": "video/mp4", "data": video_bytes},
-            "Transcribe this video clearly."
-        ]
-    )
-
-    text = response.text.strip()
-
-    if not text:
-        raise ValueError("Transcription returned empty")
-
-    return text
+    except Exception as e:
+        print("TRANSCRIPTION ERROR:", str(e))
+        raise
 
 
 # -------------------------
@@ -123,18 +110,27 @@ def summarize_text(transcript):
 
     client = get_client()
 
+    if not transcript or not transcript.strip():
+        return "No transcript available."
+
     prompt = f"""
 Summarize the following lecture:
 
 1. Short summary (5 lines)
-2. Key points
+2. Key points (bullet points)
 
+Transcript:
 {transcript}
 """
 
-    response = client.models.generate_content(
-        model="gemini-1.5-flash",
-        contents=prompt
-    )
+    try:
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=prompt
+        )
 
-    return response.text.strip()
+        return (response.text or "").strip()
+
+    except Exception as e:
+        print("SUMMARY ERROR:", str(e))
+        return "Summary generation failed."
