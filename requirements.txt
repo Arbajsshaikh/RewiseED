@@ -5,5 +5,4 @@ protobuf==4.25.3
 psycopg2-binary
 supabase
 moviepy 
-google-generativeai
 google-genai
