@@ -4,10 +4,10 @@ import os
 import json
 import tempfile
 import requests
-from openai import OpenAI
+import google.generativeai as genai
 
 # -------------------------
-# CLIENT SETUP
+# CLIENT SETUP (COMPATIBLE)
 # -------------------------
 client = None
 
@@ -15,21 +15,22 @@ def get_client():
     global client
 
     if client is None:
-        api_key = os.getenv("OPENAI_API_KEY")
+        api_key = os.getenv("GEMINI_API_KEY")
 
         if not api_key:
-            raise ValueError("OPENAI_API_KEY is missing")
+            raise ValueError("GEMINI_API_KEY is missing")
 
-        client = OpenAI(api_key=api_key)
+        genai.configure(api_key=api_key)
+        client = genai.GenerativeModel("gemini-1.5-flash")
 
     return client
 
 
-OPENAI_MODEL = "gpt-5-nano"
+OPENAI_MODEL = "gemini-1.5-flash"  # just to avoid breaking references
 
 
 # -------------------------
-# QUIZ GENERATION (UNCHANGED)
+# QUIZ GENERATION (SAME FUNCTION)
 # -------------------------
 def generate_quiz_from_text(content: str, num_questions: int = 5):
 
@@ -44,9 +45,7 @@ From the following content, create {num_questions} multiple-choice questions.
 Rules:
 - Each question MUST have 4 options: A, B, C, D.
 - Exactly ONE option is correct.
-- Difficulty: mixed but suitable for the given content.
-
-Return ONLY valid JSON.
+- Return ONLY valid JSON.
 
 Content:
 \"\"\"{content}\"\"\"
@@ -54,15 +53,8 @@ Content:
 
     client = get_client()
 
-    resp = client.chat.completions.create(
-        model=OPENAI_MODEL,
-        messages=[
-            {"role": "system", "content": "You are a strict JSON API. Respond with ONLY JSON."},
-            {"role": "user", "content": prompt},
-        ]
-    )
-
-    raw = resp.choices[0].message.content
+    response = client.generate_content(prompt)
+    raw = response.text
 
     start = raw.find("[")
     end = raw.rfind("]")
@@ -77,19 +69,12 @@ Content:
 
 
 # -------------------------
-# 🎯 NEW: VIDEO → AUDIO → TRANSCRIPT (VERCEL SAFE)
+# 🎯 VIDEO → TRANSCRIPT (GEMINI)
 # -------------------------
 def transcribe_video_from_url(video_url):
-    """
-    Vercel-safe transcription:
-    - Downloads small video
-    - Extracts limited audio
-    - Sends to OpenAI
-    """
 
     client = get_client()
 
-    # 📥 Download video (LIMIT SIZE)
     response = requests.get(video_url, stream=True)
 
     max_size = 10 * 1024 * 1024  # 10MB limit
@@ -109,14 +94,18 @@ def transcribe_video_from_url(video_url):
 
     temp_video.close()
 
-    # ⚠️ IMPORTANT: Instead of ffmpeg, send raw file (OpenAI handles audio extraction internally)
     with open(temp_video.name, "rb") as f:
-        transcript = client.audio.transcriptions.create(
-            model="gpt-4o-transcribe",
-            file=f
-        )
+        video_bytes = f.read()
 
-    text = transcript.text.strip()
+    response = client.generate_content([
+        {
+            "mime_type": "video/mp4",
+            "data": video_bytes
+        },
+        "Transcribe this video clearly."
+    ])
+
+    text = response.text.strip()
 
     if not text:
         raise ValueError("Transcription returned empty")
@@ -125,12 +114,9 @@ def transcribe_video_from_url(video_url):
 
 
 # -------------------------
-# SUMMARY (IMPROVED USING AI)
+# SUMMARY (GEMINI)
 # -------------------------
 def summarize_text(transcript):
-    """
-    Better AI-based summary
-    """
 
     client = get_client()
 
@@ -144,12 +130,6 @@ Transcript:
 {transcript}
 """
 
-    resp = client.chat.completions.create(
-        model=OPENAI_MODEL,
-        messages=[
-            {"role": "system", "content": "You are a helpful summarizer."},
-            {"role": "user", "content": prompt},
-        ]
-    )
+    response = client.generate_content(prompt)
 
-    return resp.choices[0].message.content.strip()
+    return response.text.strip()
