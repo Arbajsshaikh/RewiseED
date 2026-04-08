@@ -4,7 +4,9 @@ import os
 import json
 import tempfile
 import requests
-from google import genai
+from google.genai import Client
+import os
+
 
 # -------------------------
 # CLIENT SETUP
@@ -20,7 +22,8 @@ def get_client():
         if not api_key:
             raise ValueError("GEMINI_API_KEY is missing")
 
-        client = genai.Client(api_key=api_key)
+        client = Client(api_key=os.environ.get("GEMINI_API_KEY"))
+
 
     return client
 
